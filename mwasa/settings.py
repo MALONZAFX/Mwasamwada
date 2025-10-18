@@ -1,20 +1,12 @@
 from pathlib import Path
 import os
 
-# ---------------------------------------------------------
-# BASE CONFIGURATION
-# ---------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-your-secret-key-here-change-in-production')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True  # Set to False in production
+DEBUG = False  # 🚨 Set to False for production
 
-# ---------------------------------------------------------
-# HOST SETTINGS
-# ---------------------------------------------------------
 ALLOWED_HOSTS = [
     'mwasamwada-production.up.railway.app',
     'mwasawellbeingservices.com',
@@ -23,13 +15,13 @@ ALLOWED_HOSTS = [
     'localhost',
 ]
 
-env_hosts = os.environ.get("ALLOWED_HOSTS")
-if env_hosts:
-    ALLOWED_HOSTS = env_hosts.split(",")
+# ✅ Add this for CSRF fix
+CSRF_TRUSTED_ORIGINS = [
+    'https://mwasamwada-production.up.railway.app',
+    'https://mwasawellbeingservices.com',
+    'https://www.mwasawellbeingservices.com',
+]
 
-# ---------------------------------------------------------
-# APPLICATION DEFINITION
-# ---------------------------------------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,10 +34,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-
-    # ✅ Add WhiteNoise to serve static files in production
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ Serve static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -74,9 +63,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mwasa.wsgi.application'
 
-# ---------------------------------------------------------
-# DATABASE
-# ---------------------------------------------------------
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -84,9 +70,6 @@ DATABASES = {
     }
 }
 
-# ---------------------------------------------------------
-# PASSWORD VALIDATION
-# ---------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -94,32 +77,19 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# ---------------------------------------------------------
-# INTERNATIONALIZATION
-# ---------------------------------------------------------
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# ---------------------------------------------------------
-# STATIC FILES (CSS, JS, IMAGES)
-# ---------------------------------------------------------
+# ✅ Static files config (works locally + Railway)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# ✅ Enable Gzip + hashed storage for production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ---------------------------------------------------------
-# DEFAULT PRIMARY KEY FIELD TYPE
-# ---------------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ---------------------------------------------------------
-# EMAIL CONFIGURATION
-# ---------------------------------------------------------
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -128,10 +98,7 @@ EMAIL_HOST_USER = 'mwasawellservices@gmail.com'
 EMAIL_HOST_PASSWORD = 'ozfursmmzsuwkttp'
 DEFAULT_FROM_EMAIL = 'mwasawellservices@gmail.com'
 
-# ---------------------------------------------------------
-# SECURITY / HTTPS SETTINGS
-# ---------------------------------------------------------
-# Uncomment when you switch DEBUG to False
+# ✅ Security (optional when live)
 # SECURE_SSL_REDIRECT = True
 # SESSION_COOKIE_SECURE = True
 # CSRF_COOKIE_SECURE = True
