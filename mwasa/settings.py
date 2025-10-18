@@ -23,8 +23,6 @@ ALLOWED_HOSTS = [
     'localhost',
 ]
 
-# Optional: allow overriding via environment variable
-# Example: ALLOWED_HOSTS="mwasawellbeingservices.com,www.mwasawellbeingservices.com"
 env_hosts = os.environ.get("ALLOWED_HOSTS")
 if env_hosts:
     ALLOWED_HOSTS = env_hosts.split(",")
@@ -39,11 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'content',  # your app
+    'content',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+
+    # ✅ Add WhiteNoise to serve static files in production
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -101,10 +103,14 @@ USE_I18N = True
 USE_TZ = True
 
 # ---------------------------------------------------------
-# STATIC FILES
+# STATIC FILES (CSS, JS, IMAGES)
 # ---------------------------------------------------------
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# ✅ Enable Gzip + hashed storage for production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ---------------------------------------------------------
 # DEFAULT PRIMARY KEY FIELD TYPE
@@ -125,10 +131,10 @@ DEFAULT_FROM_EMAIL = 'mwasawellservices@gmail.com'
 # ---------------------------------------------------------
 # SECURITY / HTTPS SETTINGS
 # ---------------------------------------------------------
-# When you’re ready for production, uncomment these:
-# SECURE_SSL_REDIRECT = True              # force HTTPS redirect
+# Uncomment when you switch DEBUG to False
+# SECURE_SSL_REDIRECT = True
 # SESSION_COOKIE_SECURE = True
 # CSRF_COOKIE_SECURE = True
-# SECURE_HSTS_SECONDS = 31536000          # 1 year
+# SECURE_HSTS_SECONDS = 31536000
 # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 # SECURE_HSTS_PRELOAD = True
