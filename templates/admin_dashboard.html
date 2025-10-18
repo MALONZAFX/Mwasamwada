@@ -1,0 +1,782 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Mwasamwanda</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-blue: #2c5aa0;
+            --light-blue: #e8f1ff;
+            --dark-blue: #1e3d6f;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+        
+        body {
+            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            background: var(--primary-blue);
+            color: white;
+            min-height: 100vh;
+            position: fixed;
+            width: 250px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 4px 0;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .navbar-custom {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border-left: 4px solid var(--primary-blue);
+            transition: transform 0.3s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stats-card i {
+            font-size: 2rem;
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+        }
+        
+        .stats-card h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .content-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .content-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        
+        .content-item:hover {
+            border-color: var(--primary-blue);
+            box-shadow: 0 2px 8px rgba(44, 90, 160, 0.1);
+        }
+        
+        .content-item label {
+            font-weight: 600;
+            color: var(--dark-blue);
+            margin-bottom: 8px;
+        }
+        
+        .btn-save {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-save:hover {
+            background: var(--dark-blue);
+            transform: translateY(-2px);
+        }
+        
+        .table-custom th {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+        
+        .badge-pending {
+            background: var(--warning);
+            color: black;
+        }
+        
+        .badge-confirmed {
+            background: var(--success);
+            color: white;
+        }
+        
+        .section-title {
+            color: var(--primary-blue);
+            border-bottom: 2px solid var(--light-blue);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -250px;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .sidebar.active {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="p-4">
+            <h4 class="text-center mb-4">
+                <i class="bi bi-speedometer2"></i> Admin Panel
+            </h4>
+            
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#dashboard">
+                        <i class="bi bi-house"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#hero-section">
+                        <i class="bi bi-star"></i> Hero Section
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#services-section">
+                        <i class="bi bi-briefcase"></i> Services
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#contact-section">
+                        <i class="bi bi-telephone"></i> Contact Info
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#bookings">
+                        <i class="bi bi-calendar-check"></i> Bookings
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#contacts">
+                        <i class="bi bi-envelope"></i> Contact Forms
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/" target="_blank">
+                        <i class="bi bi-eye"></i> View Website
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-custom">
+            <div class="container-fluid">
+                <button class="btn btn-primary d-md-none" id="sidebarToggle">
+                    <i class="bi bi-list"></i>
+                </button>
+                
+                <h4 class="mb-0">Welcome to Admin Dashboard</h4>
+                
+                <div class="d-flex align-items-center">
+                    <span class="me-3">Hello, Admin</span>
+                    <a href="/" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Notification -->
+        <div class="notification alert alert-success alert-dismissible fade show" role="alert" id="notification">
+            <span id="notification-message">Content updated successfully!</span>
+            <button type="button" class="btn-close" onclick="hideNotification()"></button>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="content-section">
+            <h3 class="section-title">Dashboard Overview</h3>
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <i class="bi bi-envelope"></i>
+                        <h3>{{ total_contacts }}</h3>
+                        <p class="text-muted mb-0">Contact Submissions</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <i class="bi bi-calendar-check"></i>
+                        <h3>{{ total_bookings }}</h3>
+                        <p class="text-muted mb-0">Service Bookings</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <i class="bi bi-people"></i>
+                        <h3>{{ total_subscribers }}</h3>
+                        <p class="text-muted mb-0">Newsletter Subscribers</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <i class="bi bi-pencil-square"></i>
+                        <h3>{{ content|length }}</h3>
+                        <p class="text-muted mb-0">Editable Sections</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="row">
+                <div class="col-12">
+                    <h5 class="mb-3">Quick Actions</h5>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="#hero-section" class="btn btn-primary">Edit Hero Section</a>
+                        <a href="#services-section" class="btn btn-outline-primary">Update Services</a>
+                        <a href="#contact-section" class="btn btn-outline-primary">Modify Contact Info</a>
+                        <a href="#bookings" class="btn btn-outline-primary">View Bookings</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Section Editor -->
+        <div id="hero-section" class="content-section" style="display: none;">
+            <h3 class="section-title">Hero Section Content</h3>
+            <p class="text-muted mb-4">Edit the main hero section content that appears at the top of your website.</p>
+            
+            <div class="row g-3">
+                <!-- Site Name -->
+                <div class="col-12">
+                    <div class="content-item">
+                        <label>Site Name</label>
+                        <input type="text" class="form-control" id="site_name" 
+                               value="{{ content.site_name|default:'Mwasamwanda' }}">
+                        <small class="text-muted">The main name of your website displayed in the header</small>
+                    </div>
+                </div>
+                
+                <!-- Hero Tagline -->
+                <div class="col-12">
+                    <div class="content-item">
+                        <label>Hero Tagline</label>
+                        <input type="text" class="form-control" id="hero_tagline" 
+                               value="{{ content.hero_tagline|default:'Empowerment, Enhanced Productivity, Happy Life' }}">
+                        <small class="text-muted">The tagline that appears below the logo in hero section</small>
+                    </div>
+                </div>
+                
+                <!-- Hero Title -->
+                <div class="col-12">
+                    <div class="content-item">
+                        <label>Hero Main Title</label>
+                        <textarea class="form-control" id="hero_title" rows="3">{{ content.hero_title|default:'Enhancing Normative Development and Mental Health Across the Lifespan' }}</textarea>
+                        <small class="text-muted">The main heading text in the hero section</small>
+                    </div>
+                </div>
+                
+                <!-- Hero Description -->
+                <div class="col-12">
+                    <div class="content-item">
+                        <label>Hero Description</label>
+                        <textarea class="form-control" id="hero_description" rows="4">{{ content.hero_description|default:'Mwasamwanda Well-being Services facilitates normative development and mental health through professional, evidence-based psychological interventions for individuals and groups.' }}</textarea>
+                        <small class="text-muted">The descriptive text below the main title</small>
+                    </div>
+                </div>
+                
+                <!-- Stats Section -->
+                <div class="col-md-6">
+                    <div class="content-item">
+                        <label>Stat 1 - Title</label>
+                        <input type="text" class="form-control" id="stat1_title" 
+                               value="{{ content.stat1_title|default:'Professional Psychologists' }}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="content-item">
+                        <label>Stat 1 - Description</label>
+                        <input type="text" class="form-control" id="stat1_description" 
+                               value="{{ content.stat1_description|default:'Competent and experienced team' }}">
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <button class="btn btn-save" onclick="saveHeroContent()">
+                        <i class="bi bi-check-circle"></i> Save Hero Section
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Services Section Editor -->
+        <div id="services-section" class="content-section" style="display: none;">
+            <h3 class="section-title">Services Content</h3>
+            <p class="text-muted mb-4">Edit your service offerings, prices, and descriptions.</p>
+            
+            <div class="row g-3">
+                <!-- Services Section Title -->
+                <div class="col-12">
+                    <div class="content-item">
+                        <label>Services Section Title</label>
+                        <input type="text" class="form-control" id="services_title" 
+                               value="{{ content.services_title|default:'Professional Psychological Services' }}">
+                    </div>
+                </div>
+                
+                <!-- Services Section Subtitle -->
+                <div class="col-12">
+                    <div class="content-item">
+                        <label>Services Section Subtitle</label>
+                        <textarea class="form-control" id="services_subtitle" rows="2">{{ content.services_subtitle|default:'Evidence-based interventions designed to enhance normative development and mental health across the lifespan' }}</textarea>
+                    </div>
+                </div>
+                
+                <!-- Service 1 - Consultancy -->
+                <div class="col-12">
+                    <h5 class="mt-4 mb-3 text-primary">Consultancy & Advisory Service</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="content-item">
+                                <label>Service Title</label>
+                                <input type="text" class="form-control" id="service1_title" 
+                                       value="{{ content.service1_title|default:'Consultancy & Advisory' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="content-item">
+                                <label>Service Price</label>
+                                <input type="text" class="form-control" id="service1_price" 
+                                       value="{{ content.service1_price|default:'KSh 5,000' }}">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="content-item">
+                                <label>Service Description</label>
+                                <textarea class="form-control" id="service1_description" rows="3">{{ content.service1_description|default:'Professional psychological consultancy including policy formulation, program planning, research design, and psychological assessment.' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Service 2 - Counselling -->
+                <div class="col-12">
+                    <h5 class="mt-4 mb-3 text-primary">Counselling & Psychotherapy Service</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="content-item">
+                                <label>Service Title</label>
+                                <input type="text" class="form-control" id="service2_title" 
+                                       value="{{ content.service2_title|default:'Counselling & Psychotherapy' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="content-item">
+                                <label>Service Price</label>
+                                <input type="text" class="form-control" id="service2_price" 
+                                       value="{{ content.service2_price|default:'KSh 3,500/session' }}">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="content-item">
+                                <label>Service Description</label>
+                                <textarea class="form-control" id="service2_description" rows="3">{{ content.service2_description|default:'Professional therapy services across the lifespan to help individuals deal with issues limiting normative development and mental health.' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <button class="btn btn-save" onclick="saveServicesContent()">
+                        <i class="bi bi-check-circle"></i> Save Services Content
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Section Editor -->
+        <div id="contact-section" class="content-section" style="display: none;">
+            <h3 class="section-title">Contact Information</h3>
+            <p class="text-muted mb-4">Update your contact details and business information.</p>
+            
+            <div class="row g-3">
+                <!-- Contact Title -->
+                <div class="col-12">
+                    <div class="content-item">
+                        <label>Contact Section Title</label>
+                        <input type="text" class="form-control" id="contact_title" 
+                               value="{{ content.contact_title|default:'Contact Mwasamwanda Well-being Services' }}">
+                    </div>
+                </div>
+                
+                <!-- Contact Subtitle -->
+                <div class="col-12">
+                    <div class="content-item">
+                        <label>Contact Section Subtitle</label>
+                        <input type="text" class="form-control" id="contact_subtitle" 
+                               value="{{ content.contact_subtitle|default:'Get in touch with us to discuss your mental health needs or schedule a consultation.' }}">
+                    </div>
+                </div>
+                
+                <!-- Phone Number -->
+                <div class="col-md-6">
+                    <div class="content-item">
+                        <label>Phone Number</label>
+                        <input type="text" class="form-control" id="phone_number" 
+                               value="{{ content.phone_number|default:'0758283613' }}">
+                    </div>
+                </div>
+                
+                <!-- Email Address -->
+                <div class="col-md-6">
+                    <div class="content-item">
+                        <label>Email Address</label>
+                        <input type="email" class="form-control" id="email_address" 
+                               value="{{ content.email_address|default:'mwasawellservices@gmail.com' }}">
+                    </div>
+                </div>
+                
+                <!-- Address -->
+                <div class="col-12">
+                    <div class="content-item">
+                        <label>Address Line 1</label>
+                        <input type="text" class="form-control" id="address_line1" 
+                               value="{{ content.address_line1|default:'Southern House, Murang\\'a Road' }}">
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <div class="content-item">
+                        <label>Address Line 2</label>
+                        <input type="text" class="form-control" id="address_line2" 
+                               value="{{ content.address_line2|default:'Off Mot Avenue, Fourth Floor' }}">
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <div class="content-item">
+                        <label>Address Line 3</label>
+                        <input type="text" class="form-control" id="address_line3" 
+                               value="{{ content.address_line3|default:'Nairobi, KENYA' }}">
+                    </div>
+                </div>
+                
+                <!-- Business Hours -->
+                <div class="col-md-6">
+                    <div class="content-item">
+                        <label>Weekday Hours</label>
+                        <input type="text" class="form-control" id="hours_weekdays" 
+                               value="{{ content.hours_weekdays|default:'Mon-Fri: 8:00 AM - 6:00 PM' }}">
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="content-item">
+                        <label>Weekend Hours</label>
+                        <input type="text" class="form-control" id="hours_weekend" 
+                               value="{{ content.hours_weekend|default:'Sat: 9:00 AM - 2:00 PM' }}">
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <button class="btn btn-save" onclick="saveContactContent()">
+                        <i class="bi bi-check-circle"></i> Save Contact Information
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bookings Section -->
+        <div id="bookings" class="content-section" style="display: none;">
+            <h3 class="section-title">Service Bookings</h3>
+            <p class="text-muted mb-4">View and manage all service booking requests from clients.</p>
+            
+            {% if service_bookings %}
+            <div class="table-responsive">
+                <table class="table table-custom table-hover">
+                    <thead>
+                        <tr>
+                            <th>Client Name</th>
+                            <th>Service Type</th>
+                            <th>Contact</th>
+                            <th>Preferred Date/Time</th>
+                            <th>Session Type</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in service_bookings %}
+                        <tr>
+                            <td>{{ booking.client_name }}</td>
+                            <td>{{ booking.get_service_type_display }}</td>
+                            <td>
+                                <div>{{ booking.client_phone }}</div>
+                                <small class="text-muted">{{ booking.client_email }}</small>
+                            </td>
+                            <td>
+                                <div>{{ booking.preferred_date }}</div>
+                                <small class="text-muted">{{ booking.preferred_time }}</small>
+                            </td>
+                            <td>{{ booking.get_session_type_display }}</td>
+                            <td>
+                                <span class="badge {% if booking.status == 'pending' %}badge-pending{% else %}badge-confirmed{% endif %}">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ booking.submitted_at|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-x" style="font-size: 3rem; color: #6c757d;"></i>
+                <h5 class="mt-3 text-muted">No bookings yet</h5>
+                <p class="text-muted">Service bookings will appear here when clients book through your website.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Contact Submissions Section -->
+        <div id="contacts" class="content-section" style="display: none;">
+            <h3 class="section-title">Contact Form Submissions</h3>
+            <p class="text-muted mb-4">View messages sent through the contact form on your website.</p>
+            
+            {% if contact_submissions %}
+            <div class="table-responsive">
+                <table class="table table-custom table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Subject</th>
+                            <th>Message Preview</th>
+                            <th>Submitted</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for contact in contact_submissions %}
+                        <tr>
+                            <td>{{ contact.name }}</td>
+                            <td>{{ contact.email }}</td>
+                            <td>{{ contact.subject }}</td>
+                            <td>
+                                <span class="message-preview" title="{{ contact.message }}">
+                                    {{ contact.message|truncatewords:10 }}
+                                </span>
+                            </td>
+                            <td>{{ contact.submitted_at|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge {% if contact.is_read %}badge-confirmed{% else %}badge-pending{% endif %}">
+                                    {% if contact.is_read %}Read{% else %}Unread{% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-envelope-x" style="font-size: 3rem; color: #6c757d;"></i>
+                <h5 class="mt-3 text-muted">No contact submissions yet</h5>
+                <p class="text-muted">Contact form submissions will appear here when visitors send messages through your website.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bootstrap & jQuery -->
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    
+    <script>
+        // Sidebar Toggle for Mobile
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+
+        // Navigation
+        document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all links
+                document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
+                // Add active class to clicked link
+                this.classList.add('active');
+                
+                // Hide all sections
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                
+                // Show target section
+                const targetId = this.getAttribute('href').substring(1);
+                document.getElementById(targetId).style.display = 'block';
+            });
+        });
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const messageEl = document.getElementById('notification-message');
+            
+            messageEl.textContent = message;
+            notification.className = `notification alert alert-${type} alert-dismissible fade show`;
+            notification.style.display = 'block';
+            
+            setTimeout(hideNotification, 5000);
+        }
+
+        function hideNotification() {
+            document.getElementById('notification').style.display = 'none';
+        }
+
+        // Save Hero Content
+        async function saveHeroContent() {
+            const contentData = {
+                'site_name': document.getElementById('site_name').value,
+                'hero_tagline': document.getElementById('hero_tagline').value,
+                'hero_title': document.getElementById('hero_title').value,
+                'hero_description': document.getElementById('hero_description').value,
+                'stat1_title': document.getElementById('stat1_title').value,
+                'stat1_description': document.getElementById('stat1_description').value,
+            };
+
+            await saveContentBatch(contentData, 'hero');
+        }
+
+        // Save Services Content
+        async function saveServicesContent() {
+            const contentData = {
+                'services_title': document.getElementById('services_title').value,
+                'services_subtitle': document.getElementById('services_subtitle').value,
+                'service1_title': document.getElementById('service1_title').value,
+                'service1_price': document.getElementById('service1_price').value,
+                'service1_description': document.getElementById('service1_description').value,
+                'service2_title': document.getElementById('service2_title').value,
+                'service2_price': document.getElementById('service2_price').value,
+                'service2_description': document.getElementById('service2_description').value,
+            };
+
+            await saveContentBatch(contentData, 'service');
+        }
+
+        // Save Contact Content
+        async function saveContactContent() {
+            const contentData = {
+                'contact_title': document.getElementById('contact_title').value,
+                'contact_subtitle': document.getElementById('contact_subtitle').value,
+                'phone_number': document.getElementById('phone_number').value,
+                'email_address': document.getElementById('email_address').value,
+                'address_line1': document.getElementById('address_line1').value,
+                'address_line2': document.getElementById('address_line2').value,
+                'address_line3': document.getElementById('address_line3').value,
+                'hours_weekdays': document.getElementById('hours_weekdays').value,
+                'hours_weekend': document.getElementById('hours_weekend').value,
+            };
+
+            await saveContentBatch(contentData, 'contact');
+        }
+
+        // Save multiple content items
+        async function saveContentBatch(contentData, contentType) {
+            try {
+                const promises = Object.entries(contentData).map(([key, value]) => {
+                    const formData = new FormData();
+                    formData.append('key', key);
+                    formData.append('value', value);
+                    formData.append('content_type', contentType);
+                    
+                    return fetch('/api/update-content/', {
+                        method: 'POST',
+                        body: formData
+                    });
+                });
+
+                await Promise.all(promises);
+                showNotification('Content updated successfully!');
+                
+                // Reload the page after a short delay to reflect changes
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error saving content:', error);
+                showNotification('Error saving content. Please try again.', 'danger');
+            }
+        }
+
+        // Initialize - Show dashboard by default
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('dashboard').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
