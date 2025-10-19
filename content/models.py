@@ -7,7 +7,7 @@ class Service(models.Model):
     SERVICE_CATEGORIES = [
         ('consultancy', 'Consultancy and Advisory'),
         ('counselling', 'Counselling and Psychotherapy'),
-        ('training', 'Training Programs'),
+        ('training', 'Training'),
     ]
 
     name = models.CharField(max_length=200)
@@ -38,7 +38,7 @@ class ServiceBooking(models.Model):
     SERVICE_CHOICES = [
         ('consultancy', 'Consultancy and Advisory'),
         ('counselling', 'Counselling and Psychotherapy'),
-        ('training', 'Training Programs'),
+        ('training', 'Training '),
     ]
 
     full_name = models.CharField(max_length=200)

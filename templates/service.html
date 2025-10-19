@@ -1497,17 +1497,15 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="col-lg-3 col-md-3 footer-links">
           <h4>Our Services</h4>
           <ul>
-            <li><a href="#services">Individual & Family Services</a></li>
-            <li><a href="#services">Organizational Services</a></li>
-            <li><a href="#services">Training Programs</a></li>
-            <li><a href="#services">Mental Health Consultancy</a></li>
-            <li><a href="#services">Psychological Assessment</a></li>
+            <li><a href="#services">Consultancy and Advisory</a></li>
+            <li><a href="#services">Counselling and Psychotherapy</a></li>
+            <li><a href="#services">Training</a></li>
           </ul>
         </div>
   
         <div class="col-lg-3 col-md-6 footer-newsletter">
           <h4>Mental Health Insights</h4>
-          <p>Subscribe for mental wellness tips and service updates.</p>
+          <p>Subscribe for normative development and mental health tips and service updates.</p>
           <form action="{% url 'subscribe_newsletter' %}" method="post">
             {% csrf_token %}
             <input type="email" name="email" placeholder="Enter your email" required>
