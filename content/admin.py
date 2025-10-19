@@ -1,22 +1,33 @@
 from django.contrib import admin
-from .models import Service, ServiceBooking, ContactSubmission, NewsletterSubscriber
+from .models import Service, Feature, ServiceBooking, ContactSubmission, NewsletterSubscriber
+
+class FeatureInline(admin.TabularInline):
+    model = Feature
+    extra = 1
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'icon_class', 'is_active', 'created_at']
+    list_display = ['name', 'category', 'price', 'is_active', 'created_at']
     list_filter = ['category', 'is_active', 'created_at']
-    search_fields = ['name', 'description', 'features']
-    list_editable = ['is_active', 'icon_class']
+    search_fields = ['name', 'description']
+    list_editable = ['is_active', 'price']
+    inlines = [FeatureInline]
     
     fieldsets = (
         ('Service Information', {
-            'fields': ('name', 'category', 'description')
+            'fields': ('name', 'category', 'description', 'price')
         }),
-        ('Features & Display', {
-            'fields': ('features', 'icon_class', 'is_active'),
-            'description': 'Enter features separated by commas. Icon class should be like "bi-heart-pulse"'
+        ('Display Settings', {
+            'fields': ('icon_class', 'is_active'),
+            'description': 'Icon class examples: bi-heart-pulse, bi-person, bi-chat-dots, bi-mortarboard'
         }),
     )
+
+@admin.register(Feature)
+class FeatureAdmin(admin.ModelAdmin):
+    list_display = ['name', 'service']
+    list_filter = ['service']
+    search_fields = ['name', 'service__name']
 
 @admin.register(ServiceBooking)
 class ServiceBookingAdmin(admin.ModelAdmin):
@@ -25,7 +36,6 @@ class ServiceBookingAdmin(admin.ModelAdmin):
     search_fields = ['full_name', 'phone', 'description']
     readonly_fields = ['submitted_at']
     list_editable = ['status']
-
 
 @admin.register(ContactSubmission)
 class ContactSubmissionAdmin(admin.ModelAdmin):

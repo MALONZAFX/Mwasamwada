@@ -50,6 +50,8 @@
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
   
+      
+  
     </div>
 </header>
 
@@ -107,8 +109,9 @@
           </div>
 
           <h1 class="mb-4">
-            Do You Want to Enhance Normative Development <br>
-            and Mental Health <span class="accent-text">Today</span>
+            Enhancing Normative Development <br>
+            and Mental Health <br>
+            <span class="accent-text">Across the Lifespan</span>
           </h1>
 
           <p class="mb-4 mb-md-5">
@@ -194,6 +197,11 @@
 
 </section>
 <!-- /Hero Section -->
+
+
+
+
+
 
 <!-- Features Section -->
 <section id="features" class="features section">
@@ -295,6 +303,9 @@
 
 </section><!-- /Features Section -->
 
+
+
+
 <!-- Features Cards Section -->
 <section id="features-cards" class="features-cards section">
 
@@ -339,6 +350,9 @@
   </div>
 
 </section><!-- /Features Cards Section -->
+
+
+
 
    <!-- Call To Action Section -->
 <section id="call-to-action" class="call-to-action section">
@@ -407,34 +421,94 @@
   <div class="container" data-aos="fade-up" data-aos-delay="100">
     <div class="row justify-content-center">
       
-      <!-- Dynamic Services from Database -->
-      {% for service in services %}
-      <div class="col-lg-6 col-md-8" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:100 }}">
+      <!-- Consultancy and Advisory Services -->
+      <div class="col-lg-6 col-md-8" data-aos="fade-up" data-aos-delay="100">
         <div class="service-card">
           <div class="service-icon">
             <div class="icon-wrapper">
-              <i class="bi {{ service.icon_class }}"></i>
+              <i class="bi bi-person-check"></i>
             </div>
           </div>
           <div class="service-content">
-            <h3>{{ service.name }}</h3>
+            <h3>Consultancy and Advisory</h3>
             <p class="service-description">
-              {{ service.description }}
+              Professional consultancy and advisory on psychological interventions for normative development and mental health
             </p>
             <ul class="service-features">
-              {% for feature in service.get_features_list %}
-              <li>{{ feature }}</li>
-              {% endfor %}
+              <li>Policy formulation</li>
+              <li>Strategy development</li>
+              <li>Programme planning</li>
+              <li>Psychological assessment</li>
+              <li>Supervision services</li>
             </ul>
             <div class="service-actions">
               <a href="#booking" class="btn btn-primary">
-                Book {{ service.name }}
+                Book Consultation
               </a>
             </div>
           </div>
         </div>
       </div>
-      {% endfor %}
+
+      <!-- Counselling and Psychotherapy Services -->
+      <div class="col-lg-6 col-md-8" data-aos="fade-up" data-aos-delay="200">
+        <div class="service-card">
+          <div class="service-icon">
+            <div class="icon-wrapper">
+              <i class="bi bi-chat-dots"></i>
+            </div>
+          </div>
+          <div class="service-content">
+            <h3>Counselling and Psychotherapy</h3>
+            <p class="service-description">
+              Professional therapeutic services for individuals, couples, families and groups
+            </p>
+            <ul class="service-features">
+              <li>Individual therapy</li>
+              <li>Couple counselling</li>
+              <li>Family therapy</li>
+              <li>Group counselling</li>
+              <li>Mental health support</li>
+            </ul>
+            <div class="service-actions">
+              <a href="#booking" class="btn btn-primary">
+                Book Session
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Training Services -->
+      <div class="col-lg-6 col-md-8" data-aos="fade-up" data-aos-delay="300">
+        <div class="service-card">
+          <div class="service-icon">
+            <div class="icon-wrapper">
+              <i class="bi bi-mortarboard"></i>
+            </div>
+          </div>
+          <div class="service-content">
+            <h3>Training Programs</h3>
+            <p class="service-description">
+              Comprehensive training programs for personal and professional development
+            </p>
+            <ul class="service-features">
+              <li>Basic counselling skills</li>
+              <li>Emotional Intelligence</li>
+              <li>Life Skills training</li>
+              <li>Mental Health Awareness</li>
+              <li>Mind Transformation Coaching</li>
+              <li>Parental Education</li>
+              <li>Psychological Safety</li>
+            </ul>
+            <div class="service-actions">
+              <a href="#booking" class="btn btn-primary">
+                Book Training
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -634,14 +708,13 @@
   }
 }
 </style>
-
   <!-- Stats Section -->
 <section id="stats" class="stats section">
 
   <!-- Section Title -->
   <div class="container section-title text-center" data-aos="fade-up" id="approach">
     <h2>Our Professional Impact</h2>
-    <p>Empowered clients, enhanced productivity and happy life</p>
+    <p>Discover the milestones that define our commitment to enhancing mental health and normative development.</p>
   </div><!-- End Section Title -->
 
   <div class="container" data-aos="fade-up" data-aos-delay="100">
@@ -655,7 +728,7 @@
             <i class="bi bi-person-check" style="font-size: 2rem; color: #2c5aa0;"></i>
           </div>
           <span data-purecounter-start="0" data-purecounter-end="500" data-purecounter-duration="1" class="purecounter"></span>
-          <p>Clients Empowered</p>
+          <p>Clients Served</p>
         </div>
       </div><!-- End Stats Item -->
 
@@ -766,6 +839,8 @@
 }
 </style>
 
+
+
     <!-- FAQ Section -->
 <section class="faq-9 faq section" id="faq">
 
@@ -790,14 +865,6 @@
               <p>mwasawellservices@gmail.com</p>
             </div>
           </div>
-          <div class="contact-item">
-            <i class="bi bi-clock"></i>
-            <div>
-              <strong>Service Time</strong>
-              <p>Mon - Fri: 8.00 a.m to 5.00 p.m</p>
-              <p>Sat: 8.30 a.m to 2.30 p.m</p>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -808,7 +875,7 @@
           <div class="faq-item faq-active">
             <h3>What types of psychological services do you offer?</h3>
             <div class="faq-content">
-              <p>We provide comprehensive psychological services including professional consultancy and advisory, counselling/psychotherapy, and training programs. Our services cover policy formulation, psychological assessment, individual therapy, couple counselling, family therapy, group counselling, and various training programs.</p>
+              <p>We provide comprehensive psychological services including professional consultancy, counselling/psychotherapy, and training programs. Our services cover individual, couple, family, and group therapy sessions, as well as organizational mental health programs.</p>
             </div>
             <i class="faq-toggle bi bi-chevron-down"></i>
           </div>
@@ -844,7 +911,7 @@
           <div class="faq-item">
             <h3>Do you offer services for organizations and companies?</h3>
             <div class="faq-content">
-              <p>Absolutely. We provide organizational mental health services including consultancy, psychological assessments, employee assistance programs, mental health awareness training, leadership coaching, and workplace psychological safety assessments.</p>
+              <p>Absolutely. We provide organizational mental health services including employee assistance programs, mental health awareness training, leadership coaching, and workplace psychological safety assessments.</p>
             </div>
             <i class="faq-toggle bi bi-chevron-right"></i>
           </div>
@@ -1085,12 +1152,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+
+
+
    <!-- Horizontal Booking Section -->
 <section id="booking" class="booking section">
 
   <!-- Section Title -->
   <div class="container section-title" data-aos="fade-up">
-    <h2>Quick Booking for Service</h2>
+    <h2>Quick Booking</h2>
     <p>Book your session in just a few steps</p>
   </div><!-- End Section Title -->
 
@@ -1119,23 +1189,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
           <!-- Service Selection -->
           <div class="form-group">
-            <label>Service Type *</label>
+            <label>Service *</label>
             <select class="form-control" name="serviceType" required>
               <option value="">Choose Service</option>
-              <option value="consultancy">Consultancy and Advisory</option>
-              <option value="counselling">Counselling and Psychotherapy</option>
-              <option value="training">Training</option>
+              <option value="individual">Individual & Family Services</option>
+              <option value="organizational">Organizational & Training Services</option>
+              <option value="organizational">Training & Capacity Building</option>
             </select>
           </div>
 
           <!-- Date & Time -->
           <div class="form-group">
-            <label>Preferred Date *</label>
+            <label>Date *</label>
             <input type="date" class="form-control" name="preferredDate" min="" required>
           </div>
 
           <div class="form-group">
-            <label>Preferred Time *</label>
+            <label>Time *</label>
             <select class="form-control" name="preferredTime" required>
               <option value="">Select Time</option>
               <option value="08:00">8:00 AM</option>
@@ -1178,7 +1248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <span>✉️ mwasawellservices@gmail.com</span>
       </div>
       <div class="contact-item">
-        <span>🕒 Mon-Fri: 8AM-5PM | Sat: 8:30AM-2:30PM</span>
+        <span>🕒 Mon-Fri: 8AM-6PM</span>
       </div>
     </div>
   </div>
@@ -1398,14 +1468,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <span class="sitename">Mwasamwanda Well-being Services</span>
           </a>
           <div class="footer-contact pt-3">
-            <p><strong>Address:</strong></p>
-            <p>P.O Box 51646 – 00100</p>
+            <p>Southern House, Murang'a Road</p>
+            <p>Off Mot Avenue, Fourth Floor</p>
             <p>Nairobi, KENYA</p>
+            <p>P.O. Box 51646 – 00100</p>
             <p class="mt-3"><strong>Phone:</strong> <span>0758283613</span></p>
             <p><strong>Email:</strong> <span>mwasawellservices@gmail.com</span></p>
-            <p><strong>Service Time:</strong></p>
-            <p>Mon - Fri: 8.00 a.m to 5.00 p.m</p>
-            <p>Sat: 8.30 a.m to 2.30 p.m</p>
           </div>
           <div class="social-links d-flex mt-4">
             <a href="https://facebook.com" target="_blank"><i class="bi bi-facebook"></i></a>
@@ -1429,16 +1497,16 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="col-lg-3 col-md-3 footer-links">
           <h4>Our Services</h4>
           <ul>
-            <li><a href="#services">Consultancy and Advisory</a></li>
-            <li><a href="#services">Counselling and Psychotherapy</a></li>
+            <li><a href="#services">Individual & Family Services</a></li>
+            <li><a href="#services">Organizational Services</a></li>
             <li><a href="#services">Training Programs</a></li>
+            <li><a href="#services">Mental Health Consultancy</a></li>
             <li><a href="#services">Psychological Assessment</a></li>
-            <li><a href="#services">Mental Health Awareness</a></li>
           </ul>
         </div>
   
         <div class="col-lg-3 col-md-6 footer-newsletter">
-          <h4>Normative Development and Mental Health Insights</h4>
+          <h4>Mental Health Insights</h4>
           <p>Subscribe for mental wellness tips and service updates.</p>
           <form action="{% url 'subscribe_newsletter' %}" method="post">
             {% csrf_token %}
@@ -1503,5 +1571,3 @@ document.addEventListener('DOMContentLoaded', function() {
   <script src="{% static 'main.js' %}"></script>
 
 </body>
-
-</html>
