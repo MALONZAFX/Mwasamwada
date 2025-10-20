@@ -46,6 +46,7 @@
           <li><a href="#services">Our Services</a></li>
           <li><a href="#approach">Our Impact</a></li>
           <li><a href="#booking">Booking</a></li>
+          <li><a href="#blog">Blog</a></li>
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
@@ -889,8 +890,18 @@
           </div>
         </div>
 
-        <!-- Date & Time Row -->
+        <!-- Mode, Date & Time Row -->
         <div class="form-row">
+          <div class="form-group">
+            <label>Session Mode *</label>
+            <select class="form-control" name="sessionMode" required>
+              <option value="">Select Mode</option>
+              <option value="in-person">🏢 In-Person</option>
+              <option value="online">💻 Online</option>
+              <option value="telephone">📞 Telephone</option>
+            </select>
+          </div>
+
           <div class="form-group">
             <label>Preferred Date *</label>
             <input type="date" class="form-control" name="preferredDate" required>
@@ -929,104 +940,27 @@
       </form>
     </div>
 
-   <!-- Quick Contact with Unicode Icons -->
-<div class="quick-contact-horizontal">
-  <div class="contact-item">
-    <div class="contact-icon">
-      <span class="icon">📞</span>
+    <!-- Quick Contact with Unicode Icons -->
+    <div class="quick-contact-horizontal">
+      <div class="contact-item">
+        <div class="contact-icon">
+          <span class="icon">📞</span>
+        </div>
+        <span>0758283613</span>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">
+          <span class="icon">✉️</span>
+        </div>
+        <span>mwasawellservices@gmail.com</span>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">
+          <span class="icon">🕒</span>
+        </div>
+        <span>Mon-Fri: 8AM-5PM | Sat: 8:30AM-2:30PM</span>
+      </div>
     </div>
-    <span>0758283613</span>
-  </div>
-  <div class="contact-item">
-    <div class="contact-icon">
-      <span class="icon">✉️</span>
-    </div>
-    <span>mwasawellservices@gmail.com</span>
-  </div>
-  <div class="contact-item">
-    <div class="contact-icon">
-      <span class="icon">🕒</span>
-    </div>
-    <span>Mon-Fri: 8AM-5PM | Sat: 8:30AM-2:30PM</span>
-  </div>
-</div>
-
-<style>
-.quick-contact-horizontal {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  flex-wrap: wrap;
-  padding: 25px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-  margin-top: 20px;
-}
-
-.contact-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #2c5aa0;
-  font-weight: 600;
-  font-size: 1rem;
-  white-space: nowrap;
-}
-
-.contact-icon {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.contact-icon .icon {
-  font-size: 1.1rem;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .quick-contact-horizontal {
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    text-align: center;
-    padding: 20px;
-  }
-  
-  .contact-item {
-    justify-content: center;
-    white-space: normal;
-    word-break: break-word;
-  }
-}
-
-@media (max-width: 480px) {
-  .quick-contact-horizontal {
-    padding: 15px;
-    gap: 15px;
-  }
-  
-  .contact-item {
-    font-size: 0.9rem;
-    flex-direction: column;
-    text-align: center;
-    gap: 8px;
-  }
-  
-  .contact-icon {
-    width: 20px;
-    height: 20px;
-  }
-  
-  .contact-icon .icon {
-    font-size: 1rem;
-  }
-}
-</style>
   </div>
 </section>
 
@@ -1087,7 +1021,7 @@
 
 .form-group {
   flex: 1;
-  min-width: 0; /* Crucial for proper flexbox behavior */
+  min-width: 0;
 }
 
 .form-group-full {
@@ -1248,7 +1182,7 @@ textarea.form-control {
   flex-shrink: 0;
 }
 
-/* Responsive Design - Fixed */
+/* Responsive Design */
 @media (max-width: 1200px) {
   .container {
     max-width: 100%;
@@ -1367,7 +1301,6 @@ textarea.form-control {
   }
 }
 
-/* Extra small devices */
 @media (max-width: 360px) {
   .container {
     padding: 0 10px;
@@ -1430,6 +1363,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const bookingForm = document.getElementById('horizontalBookingForm');
   if (bookingForm) {
     bookingForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
       const submitButton = this.querySelector('button[type="submit"]');
       const originalText = submitButton.innerHTML;
       
@@ -1437,16 +1372,363 @@ document.addEventListener('DOMContentLoaded', function() {
       submitButton.innerHTML = 'Processing...';
       submitButton.disabled = true;
       
-      // Simulate form submission
-      setTimeout(() => {
+      // Collect form data
+      const formData = {
+        fullName: this.querySelector('[name="fullName"]').value,
+        email: this.querySelector('[name="email"]').value,
+        phone: this.querySelector('[name="phone"]').value,
+        serviceType: this.querySelector('[name="serviceType"]').value,
+        sessionMode: this.querySelector('[name="sessionMode"]').value,
+        preferredDate: this.querySelector('[name="preferredDate"]').value,
+        preferredTime: this.querySelector('[name="preferredTime"]').value,
+        description: this.querySelector('[name="description"]').value
+      };
+      
+      // Send to backend
+      fetch('/api/submit-booking/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('✅ ' + data.message);
+          this.reset();
+          descriptionCard.classList.remove('active');
+          descriptionContent.textContent = serviceDescriptions[''];
+        } else {
+          alert('❌ ' + data.message);
+        }
+      })
+      .catch(error => {
+        alert('❌ Network error. Please try again.');
+        console.error('Error:', error);
+      })
+      .finally(() => {
         submitButton.innerHTML = originalText;
         submitButton.disabled = false;
-        alert('Booking submitted successfully!');
-      }, 2000);
-      
-      e.preventDefault();
+      });
     });
   }
+  
+  // CSRF token helper function
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+});
+</script>
+
+
+
+
+<!-- Our Blog & Articles Section -->
+<section id="blog" class="blogs section">
+
+  <!-- Section Title -->
+  <div class="container section-title text-center" data-aos="fade-up">
+    <h2>Our Blog & Articles</h2>
+    <p>Latest insights and resources on mental wellness and psychological development</p>
+  </div><!-- End Section Title -->
+
+  <div class="container" data-aos="fade-up" data-aos-delay="100">
+    <div class="row gy-4">
+      
+      <!-- Dynamic Blogs from Database -->
+      {% for blog in blogs %}
+      <div class="col-lg-4 col-md-6" id="blog">
+        <div class="blog-card">
+          <div class="blog-image">
+            {% if blog.image %}
+            <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="img-fluid">
+            {% else %}
+            <img src="{% static 'images/default-blog.jpg' %}" alt="{{ blog.title }}" class="img-fluid">
+            {% endif %}
+          </div>
+          <div class="blog-content">
+            <h3>{{ blog.title }}</h3>
+            <p class="blog-excerpt">
+              {{ blog.excerpt|truncatewords:30 }}
+            </p>
+            <button class="btn btn-primary read-more-btn" 
+                    data-blog-id="{{ blog.id }}"
+                    data-blog-title="{{ blog.title }}"
+                    data-blog-image="{% if blog.image %}{{ blog.image.url }}{% else %}{% static 'images/default-blog.jpg' %}{% endif %}"
+                    data-blog-content="{{ blog.content }}">
+              Learn More
+            </button>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center">
+        <p class="text-muted">No blog articles available yet. Check back soon!</p>
+      </div>
+      {% endfor %}
+
+    </div>
+  </div>
+
+</section>
+<!-- /Our Blog & Articles Section -->
+
+<!-- Blog Modal -->
+<div class="modal fade" id="blogModal" tabindex="-1" aria-labelledby="blogModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="blogModalLabel"></h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="blog-modal-image mb-4">
+          <img id="modalBlogImage" src="" alt="" class="img-fluid rounded">
+        </div>
+        <div id="modalBlogContent" class="blog-modal-content">
+          <!-- Content will be inserted here by JavaScript -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.blogs {
+  background: #f8f9fa;
+  padding: 80px 0;
+}
+
+.section-title h2 {
+  color: #2c5aa0;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.section-title p {
+  color: #666;
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto 40px;
+}
+
+.blog-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(44, 90, 160, 0.08);
+  transition: all 0.3s ease;
+  height: 100%;
+  border: 1px solid #e8f1ff;
+}
+
+.blog-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(44, 90, 160, 0.15);
+}
+
+.blog-image {
+  height: 220px;
+  overflow: hidden;
+}
+
+.blog-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.blog-card:hover .blog-image img {
+  transform: scale(1.05);
+}
+
+.blog-content {
+  padding: 25px;
+}
+
+.blog-content h3 {
+  color: #2c5aa0;
+  font-weight: 700;
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+  line-height: 1.4;
+}
+
+.blog-excerpt {
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.read-more-btn {
+  background: linear-gradient(135deg, #2c5aa0, #4a7bc8);
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.read-more-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(44, 90, 160, 0.3);
+  color: white;
+}
+
+/* Modal Styles */
+.modal-content {
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  border-bottom: 1px solid #e8f1ff;
+  padding: 25px 30px;
+}
+
+.modal-title {
+  color: #2c5aa0;
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.btn-close {
+  background: none;
+  font-size: 1.2rem;
+}
+
+.modal-body {
+  padding: 0 30px 30px;
+}
+
+.blog-modal-image {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.blog-modal-image img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+}
+
+.blog-modal-content {
+  color: #333;
+  line-height: 1.8;
+  font-size: 1rem;
+}
+
+.blog-modal-content p {
+  margin-bottom: 15px;
+}
+
+.modal-footer {
+  border-top: 1px solid #e8f1ff;
+  padding: 20px 30px;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .blogs {
+    padding: 60px 0;
+  }
+  
+  .blog-card {
+    margin-bottom: 30px;
+  }
+  
+  .blog-content {
+    padding: 20px;
+  }
+  
+  .blog-content h3 {
+    font-size: 1.2rem;
+  }
+  
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 20px;
+  }
+  
+  .blog-modal-image img {
+    height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .blog-content {
+    padding: 15px;
+  }
+  
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 15px;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Modal functionality
+  const readMoreButtons = document.querySelectorAll('.read-more-btn');
+  const blogModal = new bootstrap.Modal(document.getElementById('blogModal'));
+  const modalTitle = document.getElementById('blogModalLabel');
+  const modalImage = document.getElementById('modalBlogImage');
+  const modalContent = document.getElementById('modalBlogContent');
+
+  readMoreButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const blogTitle = this.getAttribute('data-blog-title');
+      const blogImage = this.getAttribute('data-blog-image');
+      const blogContent = this.getAttribute('data-blog-content');
+      
+      modalTitle.textContent = blogTitle;
+      modalImage.src = blogImage;
+      modalImage.alt = blogTitle;
+      modalContent.innerHTML = blogContent;
+      blogModal.show();
+    });
+  });
 });
 </script>
   </main>

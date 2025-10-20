@@ -1,55 +1,100 @@
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import Service, ServiceBooking, ContactSubmission, NewsletterSubscriber
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import json
+from .models import ServiceBooking, ContactSubmission, NewsletterSubscriber, Blog, Service
 
 def index(request):
-    # Get all active services with their features
-    services = Service.objects.filter(is_active=True).prefetch_related('features')
+    services = Service.objects.filter(is_active=True)
+    blogs = Blog.objects.filter(is_published=True)[:6]  # Get latest 6 blogs
     
     context = {
-        'services': services,  # This matches your template
+        'services': services,
+        'blogs': blogs,
     }
     return render(request, 'index.html', context)
 
+@csrf_exempt
+@require_POST
 def submit_booking(request):
-    if request.method == 'POST':
-        try:
-            booking = ServiceBooking(
-                full_name=request.POST.get('fullName'),
-                email=request.POST.get('email'),
-                phone=request.POST.get('phone'),
-                service_type=request.POST.get('serviceType'),
-                preferred_date=request.POST.get('preferredDate'),
-                preferred_time=request.POST.get('preferredTime'),
-                description=request.POST.get('description')
-            )
-            booking.save()
-            messages.success(request, '✅ Booking submitted successfully!')
-            return redirect('/#booking')
-        except Exception as e:
-            print(f"Booking error: {e}")
-            messages.error(request, '❌ Error submitting your booking.')
-            return redirect('/#booking')
-    return redirect('/')
+    try:
+        data = json.loads(request.body)
+        
+        # Create new booking with session mode
+        booking = ServiceBooking(
+            full_name=data.get('fullName'),
+            email=data.get('email'),
+            phone=data.get('phone'),
+            service_type=data.get('serviceType'),
+            session_mode=data.get('sessionMode'),
+            preferred_date=data.get('preferredDate'),
+            preferred_time=data.get('preferredTime'),
+            description=data.get('description')
+        )
+        
+        booking.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Booking submitted successfully! We will contact you soon.'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': 'Error submitting booking. Please try again.'
+        }, status=400)
 
+@csrf_exempt
+@require_POST
 def submit_contact(request):
-    if request.method == 'POST':
-        try:
-            ContactSubmission.objects.create(
-                name=request.POST.get('name'),
-                email=request.POST.get('email'),
-                subject=request.POST.get('subject'),
-                message=request.POST.get('message')
-            )
-            messages.success(request, '✅ Message sent successfully!')
-        except Exception as e:
-            print(f"Contact error: {e}")
-            messages.error(request, '❌ Could not send your message.')
-    return redirect('/#contact')
+    try:
+        data = json.loads(request.body)
+        
+        contact = ContactSubmission(
+            name=data.get('name'),
+            email=data.get('email'),
+            subject=data.get('subject'),
+            message=data.get('message')
+        )
+        
+        contact.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Message sent successfully! We will get back to you soon.'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': 'Error sending message. Please try again.'
+        }, status=400)
 
+@csrf_exempt
+@require_POST
 def subscribe_newsletter(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        NewsletterSubscriber.objects.get_or_create(email=email)
-        messages.success(request, '✅ Subscribed successfully!')
-    return redirect('/#footer')
+    try:
+        data = json.loads(request.body)
+        email = data.get('email')
+        
+        if NewsletterSubscriber.objects.filter(email=email).exists():
+            return JsonResponse({
+                'success': False,
+                'message': 'This email is already subscribed.'
+            })
+        
+        subscriber = NewsletterSubscriber(email=email)
+        subscriber.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Successfully subscribed to our newsletter!'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': 'Error subscribing. Please try again.'
+        }, status=400)

@@ -2,7 +2,6 @@ from django.db import models
 from django.core.mail import send_mail
 from django.conf import settings
 
-
 class Service(models.Model):
     SERVICE_CATEGORIES = [
         ('consultancy', 'Consultancy and Advisory'),
@@ -21,10 +20,8 @@ class Service(models.Model):
     def __str__(self):
         return f"{self.name} ({self.get_category_display()})"
 
-    # ✅ Fix: Add this helper method for your template loop
     def get_features_list(self):
         return [f.name for f in self.features.all()]
-
 
 class Feature(models.Model):
     service = models.ForeignKey(Service, related_name='features', on_delete=models.CASCADE)
@@ -33,18 +30,24 @@ class Feature(models.Model):
     def __str__(self):
         return f"{self.name} → {self.service.name}"
 
-
 class ServiceBooking(models.Model):
     SERVICE_CHOICES = [
         ('consultancy', 'Consultancy and Advisory'),
         ('counselling', 'Counselling and Psychotherapy'),
-        ('training', 'Training '),
+        ('training', 'Training'),
+    ]
+    
+    SESSION_MODE_CHOICES = [
+        ('in-person', '🏢 In-Person'),
+        ('online', '💻 Online'),
+        ('telephone', '📞 Telephone'),
     ]
 
     full_name = models.CharField(max_length=200)
     email = models.EmailField()
     phone = models.CharField(max_length=20)
     service_type = models.CharField(max_length=20, choices=SERVICE_CHOICES)
+    session_mode = models.CharField(max_length=20, choices=SESSION_MODE_CHOICES, default='in-person')
     preferred_date = models.DateField()
     preferred_time = models.TimeField()
     description = models.TextField()
@@ -57,7 +60,7 @@ class ServiceBooking(models.Model):
     ])
 
     def __str__(self):
-        return f"{self.full_name} - {self.get_service_type_display()}"
+        return f"{self.full_name} - {self.get_service_type_display()} ({self.get_session_mode_display()})"
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
@@ -76,6 +79,7 @@ class ServiceBooking(models.Model):
 • Email: {self.email}
 • Phone: {self.phone}
 • Service: {self.get_service_type_display()}
+• Mode: {self.get_session_mode_display()}
 
 📅 APPOINTMENT DETAILS:
 • Date: {self.preferred_date}
@@ -95,6 +99,7 @@ Thank you for choosing Mwasamwanda Well-being Services! Your appointment request
 
 📋 SUMMARY:
 • Service: {self.get_service_type_display()}
+• Mode: {self.get_session_mode_display()}
 • Date: {self.preferred_date}
 • Time: {self.preferred_time}
 • Phone: {self.phone}
@@ -114,7 +119,6 @@ Director
         except Exception as e:
             print(f"❌ Email error: {e}")
 
-
 class ContactSubmission(models.Model):
     name = models.CharField(max_length=200)
     email = models.EmailField()
@@ -126,7 +130,6 @@ class ContactSubmission(models.Model):
     def __str__(self):
         return f"Contact from {self.name}"
 
-
 class NewsletterSubscriber(models.Model):
     email = models.EmailField(unique=True)
     subscribed_at = models.DateTimeField(auto_now_add=True)
@@ -134,3 +137,24 @@ class NewsletterSubscriber(models.Model):
 
     def __str__(self):
         return self.email
+
+class Blog(models.Model):
+    title = models.CharField(max_length=200)
+    excerpt = models.TextField(help_text="Short description shown on blog cards")
+    content = models.TextField(help_text="Full blog content shown in modal")
+    image = models.ImageField(upload_to='blogs/', blank=True, null=True, help_text="Blog featured image")
+    is_published = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+    def get_image_url(self):
+        """Safe method to get image URL"""
+        if self.image and hasattr(self.image, 'url'):
+            return self.image.url
+        return '/static/images/default-blog.jpg'
+
+    class Meta:
+        ordering = ['-created_at']
