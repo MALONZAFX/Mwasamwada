@@ -834,7 +834,7 @@
 }
 </style>
 
-  <!-- Horizontal Booking Section -->
+<!-- Horizontal Booking Section -->
 <section id="booking" class="booking section">
   <div class="container section-title" data-aos="fade-up">
     <h2>Quick Booking for Service</h2>
@@ -844,6 +844,7 @@
   <div class="container" data-aos="fade-up" data-aos-delay="100">
     <div class="horizontal-booking-form">
       <form id="horizontalBookingForm" method="post">
+        {% csrf_token %}
         
         <!-- Top Row - Personal Info -->
         <div class="form-row">
@@ -965,56 +966,84 @@
 </section>
 
 <style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 .booking {
-  background: #f8f9fa;
-  padding: 40px 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 60px 0;
   width: 100%;
   overflow-x: hidden;
+  position: relative;
+}
+
+.booking::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #2c5aa0, #3a7bd5, #2c5aa0);
 }
 
 .container {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 15px;
+  padding: 0 20px;
 }
 
 .section-title {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
 }
 
 .section-title h2 {
   color: #2c5aa0;
-  font-size: 2rem;
-  margin-bottom: 10px;
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  font-weight: 700;
+  position: relative;
+  display: inline-block;
+}
+
+.section-title h2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background: #2c5aa0;
+  border-radius: 2px;
 }
 
 .section-title p {
   color: #666;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  margin-top: 20px;
 }
 
 .horizontal-booking-form {
   background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  margin-bottom: 30px;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+  margin-bottom: 40px;
   width: 100%;
+  border: 1px solid #eef2f7;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.horizontal-booking-form:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 50px rgba(0,0,0,0.15);
 }
 
 /* Form Rows */
 .form-row {
   display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
+  gap: 20px;
+  margin-bottom: 25px;
   width: 100%;
   flex-wrap: wrap;
 }
@@ -1022,6 +1051,7 @@
 .form-group {
   flex: 1;
   min-width: 0;
+  position: relative;
 }
 
 .form-group-full {
@@ -1030,46 +1060,56 @@
 
 .form-group label {
   font-weight: 600;
-  color: #333;
-  margin-bottom: 8px;
+  color: #2c5aa0;
+  margin-bottom: 10px;
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
 }
 
 .form-group-full label {
   font-weight: 600;
-  color: #333;
-  margin-bottom: 10px;
+  color: #2c5aa0;
+  margin-bottom: 12px;
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .form-control {
-  border: 2px solid #e0e0e0;
-  border-radius: 6px;
-  padding: 12px;
-  font-size: 0.95rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 1rem;
   transition: all 0.3s ease;
   width: 100%;
   background: white;
+  font-family: inherit;
+  color: #333;
 }
 
 .form-control:focus {
   border-color: #2c5aa0;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+  box-shadow: 0 0 0 4px rgba(44, 90, 160, 0.15);
+  background: #fafbff;
+}
+
+.form-control::placeholder {
+  color: #a0a4a8;
+  opacity: 1;
 }
 
 textarea.form-control {
   resize: vertical;
-  min-height: 100px;
+  min-height: 120px;
+  line-height: 1.5;
 }
 
 /* Service Selection */
 .service-selection-row {
   display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
+  gap: 20px;
+  margin-bottom: 25px;
   width: 100%;
   flex-wrap: wrap;
 }
@@ -1081,150 +1121,264 @@ textarea.form-control {
 
 .service-description-card {
   flex: 1;
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border: 2px solid #e9ecef;
-  border-radius: 8px;
-  padding: 15px;
+  border-radius: 12px;
+  padding: 20px;
   min-width: 0;
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.service-description-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(44, 90, 160, 0.05), transparent);
+  transition: left 0.6s ease;
+}
+
+.service-description-card.active::before {
+  left: 100%;
 }
 
 .service-description-card.active {
-  background: #e8f4ff;
+  background: linear-gradient(135deg, #e8f4ff 0%, #d4e7ff 100%);
   border-color: #2c5aa0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(44, 90, 160, 0.1);
 }
 
 .description-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .icon-container {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(44, 90, 160, 0.1);
+  border-radius: 8px;
+  transition: background 0.3s ease;
+}
+
+.service-description-card.active .icon-container {
+  background: rgba(44, 90, 160, 0.2);
 }
 
 .description-header h4 {
   color: #2c5aa0;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 700;
   margin: 0;
 }
 
 .description-content p {
   color: #555;
-  font-size: 0.85rem;
-  line-height: 1.4;
+  font-size: 0.95rem;
+  line-height: 1.6;
   margin: 0;
+  transition: color 0.3s ease;
+}
+
+.service-description-card.active .description-content p {
+  color: #2c5aa0;
 }
 
 .description-row {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
+  margin-top: 25px;
+  padding-top: 25px;
+  border-top: 2px solid #f0f4f8;
   width: 100%;
 }
 
 /* Button */
 .btn-book {
-  background: #2c5aa0;
+  background: linear-gradient(135deg, #2c5aa0 0%, #3a7bd5 100%);
   color: white;
   border: none;
-  padding: 14px 20px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 1rem;
+  padding: 16px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
   transition: all 0.3s ease;
   width: 100%;
   cursor: pointer;
   white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-book::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.btn-book:hover::before {
+  left: 100%;
 }
 
 .btn-book:hover {
-  background: #1e3d6f;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #1e3d6f 0%, #2c5aa0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(44, 90, 160, 0.3);
+}
+
+.btn-book:active {
+  transform: translateY(0);
+}
+
+.btn-book:disabled {
+  background: #a0a4a8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-book:disabled::before {
+  display: none;
 }
 
 /* Quick Contact */
 .quick-contact-horizontal {
   display: flex;
   justify-content: center;
-  gap: 30px;
+  gap: 40px;
   flex-wrap: wrap;
-  padding: 20px;
+  padding: 30px;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   width: 100%;
+  border: 1px solid #eef2f7;
 }
 
 .contact-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   color: #2c5aa0;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1rem;
   white-space: nowrap;
+  transition: transform 0.3s ease;
+}
+
+.contact-item:hover {
+  transform: translateY(-2px);
 }
 
 .contact-icon {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: rgba(44, 90, 160, 0.1);
+  border-radius: 6px;
+  padding: 4px;
+  transition: background 0.3s ease;
+}
+
+.contact-item:hover .contact-icon {
+  background: rgba(44, 90, 160, 0.2);
+}
+
+/* Error States */
+.form-control.error {
+  border-color: #dc3545;
+  background: #fff5f5;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 5px;
+  display: none;
+}
+
+.form-control.error + .error-message {
+  display: block;
+}
+
+/* Success Animation */
+@keyframes successPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.success-pulse {
+  animation: successPulse 0.6s ease-in-out;
 }
 
 /* Responsive Design */
 @media (max-width: 1200px) {
   .container {
     max-width: 100%;
-    padding: 0 20px;
+    padding: 0 25px;
   }
 }
 
 @media (max-width: 992px) {
+  .booking {
+    padding: 50px 0;
+  }
+  
   .form-row {
-    gap: 12px;
+    gap: 15px;
   }
   
   .service-selection-row {
-    gap: 12px;
+    gap: 15px;
   }
   
   .quick-contact-horizontal {
-    gap: 25px;
+    gap: 30px;
   }
   
   .contact-item {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
+  }
+  
+  .section-title h2 {
+    font-size: 2.2rem;
   }
 }
 
 @media (max-width: 768px) {
   .booking {
-    padding: 30px 0;
+    padding: 40px 0;
   }
   
   .horizontal-booking-form {
-    padding: 25px 20px;
+    padding: 30px 25px;
   }
   
   .form-row {
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
   }
   
   .service-selection-row {
     flex-direction: column;
-    gap: 12px;
+    gap: 20px;
   }
   
   .form-group,
@@ -1237,8 +1391,8 @@ textarea.form-control {
   .quick-contact-horizontal {
     flex-direction: column;
     align-items: flex-start;
-    gap: 15px;
-    padding: 15px;
+    gap: 20px;
+    padding: 25px;
   }
   
   .contact-item {
@@ -1247,7 +1401,66 @@ textarea.form-control {
   }
   
   .section-title h2 {
-    font-size: 1.7rem;
+    font-size: 2rem;
+  }
+  
+  .section-title p {
+    font-size: 1.1rem;
+  }
+  
+  .btn-book {
+    padding: 14px 20px;
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    padding: 0 15px;
+  }
+  
+  .horizontal-booking-form {
+    padding: 25px 20px;
+  }
+  
+  .form-control {
+    padding: 12px 14px;
+    font-size: 0.95rem;
+  }
+  
+  .btn-book {
+    padding: 12px 18px;
+    font-size: 1rem;
+  }
+  
+  .quick-contact-horizontal {
+    padding: 20px;
+  }
+  
+  .contact-item {
+    font-size: 0.9rem;
+    gap: 10px;
+  }
+  
+  .contact-icon {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .service-description-card {
+    padding: 18px;
+  }
+  
+  .description-header h4 {
+    font-size: 1rem;
+  }
+  
+  .description-content p {
+    font-size: 0.9rem;
+  }
+  
+  .section-title h2 {
+    font-size: 1.8rem;
   }
   
   .section-title p {
@@ -1255,9 +1468,9 @@ textarea.form-control {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 400px) {
   .container {
-    padding: 0 15px;
+    padding: 0 12px;
   }
   
   .horizontal-booking-form {
@@ -1265,61 +1478,19 @@ textarea.form-control {
   }
   
   .form-control {
-    padding: 10px;
-    font-size: 0.9rem;
-  }
-  
-  .btn-book {
-    padding: 12px 15px;
-    font-size: 0.95rem;
+    padding: 10px 12px;
   }
   
   .quick-contact-horizontal {
-    padding: 15px 12px;
-  }
-  
-  .contact-item {
-    font-size: 0.8rem;
-    gap: 8px;
-  }
-  
-  .contact-icon {
-    width: 18px;
-    height: 18px;
-  }
-  
-  .service-description-card {
-    padding: 12px;
-  }
-  
-  .description-header h4 {
-    font-size: 0.9rem;
-  }
-  
-  .description-content p {
-    font-size: 0.8rem;
-  }
-}
-
-@media (max-width: 360px) {
-  .container {
-    padding: 0 10px;
-  }
-  
-  .horizontal-booking-form {
-    padding: 15px 10px;
-  }
-  
-  .form-control {
-    padding: 8px;
-  }
-  
-  .quick-contact-horizontal {
-    padding: 12px 10px;
+    padding: 18px 15px;
   }
   
   .contact-item span {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
+  }
+  
+  .section-title h2 {
+    font-size: 1.6rem;
   }
 }
 </style>
@@ -1331,14 +1502,20 @@ document.addEventListener('DOMContentLoaded', function() {
   const dateInput = document.querySelector('input[name="preferredDate"]');
   if (dateInput) {
     dateInput.min = today;
+    
+    // Set a default date (tomorrow) for better UX
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowFormatted = tomorrow.toISOString().split('T')[0];
+    dateInput.value = tomorrowFormatted;
   }
   
   // Service descriptions data
   const serviceDescriptions = {
     '': 'Select a service to learn more about what we offer',
-    'consultancy': 'Professional consultancy and advisory on psychological interventions for normative development and mental health.',
-    'counselling': 'Professional therapeutic services for individuals, couples, families and groups.',
-    'training': 'Comprehensive training programs for personal and professional development.'
+    'consultancy': 'Professional consultancy and advisory on psychological interventions for normative development and mental health. Get expert guidance tailored to your specific needs.',
+    'counselling': 'Professional therapeutic services for individuals, couples, families and groups. Safe, confidential space for personal growth and healing.',
+    'training': 'Comprehensive training programs for personal and professional development. Enhance skills and knowledge through structured learning experiences.'
   };
   
   // Update service description when selection changes
@@ -1369,19 +1546,29 @@ document.addEventListener('DOMContentLoaded', function() {
       const originalText = submitButton.innerHTML;
       
       // Show loading state
-      submitButton.innerHTML = 'Processing...';
+      submitButton.innerHTML = '⏳ Processing...';
       submitButton.disabled = true;
+      
+      // Clear previous errors
+      clearErrors();
+      
+      // Basic client-side validation
+      if (!validateForm()) {
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+        return;
+      }
       
       // Collect form data
       const formData = {
-        fullName: this.querySelector('[name="fullName"]').value,
-        email: this.querySelector('[name="email"]').value,
-        phone: this.querySelector('[name="phone"]').value,
+        fullName: this.querySelector('[name="fullName"]').value.trim(),
+        email: this.querySelector('[name="email"]').value.trim(),
+        phone: this.querySelector('[name="phone"]').value.trim(),
         serviceType: this.querySelector('[name="serviceType"]').value,
         sessionMode: this.querySelector('[name="sessionMode"]').value,
         preferredDate: this.querySelector('[name="preferredDate"]').value,
         preferredTime: this.querySelector('[name="preferredTime"]').value,
-        description: this.querySelector('[name="description"]').value
+        description: this.querySelector('[name="description"]').value.trim()
       };
       
       // Send to backend
@@ -1393,20 +1580,41 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         body: JSON.stringify(formData)
       })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
       .then(data => {
         if (data.success) {
-          alert('✅ ' + data.message);
+          showNotification(data.message, 'success');
+          // Add success animation
+          submitButton.classList.add('success-pulse');
+          setTimeout(() => {
+            submitButton.classList.remove('success-pulse');
+          }, 600);
+          
+          // Reset form
           this.reset();
-          descriptionCard.classList.remove('active');
-          descriptionContent.textContent = serviceDescriptions[''];
+          // Reset date to tomorrow
+          if (dateInput) {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            dateInput.value = tomorrow.toISOString().split('T')[0];
+          }
+          // Reset service description
+          if (descriptionCard && descriptionContent) {
+            descriptionCard.classList.remove('active');
+            descriptionContent.textContent = serviceDescriptions[''];
+          }
         } else {
-          alert('❌ ' + data.message);
+          showNotification(data.message, 'error');
         }
       })
       .catch(error => {
-        alert('❌ Network error. Please try again.');
         console.error('Error:', error);
+        showNotification('Network error. Please check your connection and try again.', 'error');
       })
       .finally(() => {
         submitButton.innerHTML = originalText;
@@ -1414,6 +1622,158 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
+  
+  // Form validation function
+  function validateForm() {
+    let isValid = true;
+    const form = document.getElementById('horizontalBookingForm');
+    
+    // Check required fields
+    const requiredFields = form.querySelectorAll('[required]');
+    requiredFields.forEach(field => {
+      if (!field.value.trim()) {
+        showFieldError(field, 'This field is required');
+        isValid = false;
+      } else {
+        clearFieldError(field);
+      }
+    });
+    
+    // Email validation
+    const emailField = form.querySelector('[name="email"]');
+    if (emailField.value.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailField.value.trim())) {
+        showFieldError(emailField, 'Please enter a valid email address');
+        isValid = false;
+      }
+    }
+    
+    // Phone validation
+    const phoneField = form.querySelector('[name="phone"]');
+    if (phoneField.value.trim()) {
+      const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+      if (!phoneRegex.test(phoneField.value.trim().replace(/\s/g, ''))) {
+        showFieldError(phoneField, 'Please enter a valid phone number');
+        isValid = false;
+      }
+    }
+    
+    // Date validation
+    const dateField = form.querySelector('[name="preferredDate"]');
+    if (dateField.value) {
+      const selectedDate = new Date(dateField.value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (selectedDate < today) {
+        showFieldError(dateField, 'Please select a future date');
+        isValid = false;
+      }
+    }
+    
+    return isValid;
+  }
+  
+  // Error handling functions
+  function showFieldError(field, message) {
+    field.classList.add('error');
+    field.style.borderColor = '#dc3545';
+    
+    // Create or update error message
+    let errorElement = field.parentNode.querySelector('.error-message');
+    if (!errorElement) {
+      errorElement = document.createElement('div');
+      errorElement.className = 'error-message';
+      field.parentNode.appendChild(errorElement);
+    }
+    errorElement.textContent = message;
+  }
+  
+  function clearFieldError(field) {
+    field.classList.remove('error');
+    field.style.borderColor = '#e9ecef';
+    
+    const errorElement = field.parentNode.querySelector('.error-message');
+    if (errorElement) {
+      errorElement.remove();
+    }
+  }
+  
+  function clearErrors() {
+    const errorFields = document.querySelectorAll('.form-control.error');
+    errorFields.forEach(field => {
+      clearFieldError(field);
+    });
+  }
+  
+  // Notification function
+  function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+      <div class="notification-content">
+        <span class="notification-icon">${type === 'success' ? '✅' : '❌'}</span>
+        <span class="notification-message">${message}</span>
+      </div>
+    `;
+    
+    // Add styles for notification
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${type === 'success' ? '#d4edda' : '#f8d7da'};
+      color: ${type === 'success' ? '#155724' : '#721c24'};
+      padding: 16px 20px;
+      border-radius: 8px;
+      border: 1px solid ${type === 'success' ? '#c3e6cb' : '#f5c6cb'};
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10000;
+      max-width: 400px;
+      animation: slideInRight 0.3s ease-out;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 5 seconds
+    setTimeout(() => {
+      notification.style.animation = 'slideOutRight 0.3s ease-in';
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }, 5000);
+  }
+  
+  // Add CSS for notification animations
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes slideOutRight {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+  `;
+  document.head.appendChild(style);
   
   // CSRF token helper function
   function getCookie(name) {
@@ -1430,6 +1790,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     return cookieValue;
   }
+  
+  // Real-time validation
+  const formFields = document.querySelectorAll('#horizontalBookingForm .form-control');
+  formFields.forEach(field => {
+    field.addEventListener('blur', function() {
+      if (this.hasAttribute('required') && !this.value.trim()) {
+        showFieldError(this, 'This field is required');
+      } else {
+        clearFieldError(this);
+      }
+    });
+    
+    field.addEventListener('input', function() {
+      if (this.value.trim()) {
+        clearFieldError(this);
+      }
+    });
+  });
 });
 </script>
 
@@ -1775,7 +2153,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <ul>
             <li><a href="#services">Consultancy and Advisory</a></li>
             <li><a href="#services">Counselling and Psychotherapy</a></li>
-            <li><a href="#services">Training </a></li>
+            <li><a href="#services">Training</a></li>
           </ul>
         </div>
   
@@ -1787,6 +2165,14 @@ document.addEventListener('DOMContentLoaded', function() {
             <input type="email" name="email" placeholder="Enter your email" required>
             <button type="submit" class="btn">Subscribe</button>
           </form>
+  
+          {% if messages %}
+            <div class="newsletter-messages mt-2">
+              {% for message in messages %}
+                <p class="{% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -1799,38 +2185,63 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   
   </footer>
-
-<style>
-.footer-newsletter .btn {
-  background: #2c5aa0;
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px solid #2c5aa0;
-}
-
-.footer-newsletter .btn:hover {
-  background: white;
-  color: #2c5aa0;
-  transform: translateY(-2px);
-}
-
-.footer-newsletter input {
-  border: 2px solid #e0e0e0;
-  padding: 12px 15px;
-  border-radius: 6px;
-  font-size: 0.95rem;
-}
-
-.footer-newsletter input:focus {
-  outline: none;
-  border-color: #2c5aa0;
-}
-</style>
+  
+  <style>
+  .footer-newsletter .btn {
+    background: #2c5aa0;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid #2c5aa0;
+  }
+  
+  .footer-newsletter .btn:hover {
+    background: white;
+    color: #2c5aa0;
+    transform: translateY(-2px);
+  }
+  
+  .footer-newsletter input {
+    border: 2px solid #e0e0e0;
+    padding: 12px 15px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  .footer-newsletter input:focus {
+    outline: none;
+    border-color: #2c5aa0;
+  }
+  
+  .newsletter-messages p {
+    margin-top: 5px;
+    font-size: 0.9rem;
+    padding: 6px 10px;
+    border-radius: 5px;
+  }
+  
+  .newsletter-messages .success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+  }
+  
+  .newsletter-messages .error {
+    background-color: #f8d7da;
+    color: #842029;
+  }
+  
+  .newsletter-messages .info {
+    background-color: #cff4fc;
+    color: #055160;
+  }
+  </style>
+  
   <!-- Scroll Top -->
   <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 

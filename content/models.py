@@ -1,6 +1,9 @@
 from django.db import models
 from django.core.mail import send_mail
 from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Service(models.Model):
     SERVICE_CATEGORIES = [
@@ -83,7 +86,7 @@ class ServiceBooking(models.Model):
 
 📅 APPOINTMENT DETAILS:
 • Date: {self.preferred_date}
-• Time: {self.preferred_time}
+• Time: {self.preferred_time.strftime('%I:%M %p')}
 
 📝 CLIENT'S CONCERN:
 {self.description}
@@ -101,7 +104,7 @@ Thank you for choosing Mwasamwanda Well-being Services! Your appointment request
 • Service: {self.get_service_type_display()}
 • Mode: {self.get_session_mode_display()}
 • Date: {self.preferred_date}
-• Time: {self.preferred_time}
+• Time: {self.preferred_time.strftime('%I:%M %p')}
 • Phone: {self.phone}
 • Email: {self.email}
 
@@ -114,10 +117,28 @@ Director
 📧 mwasawellservices@gmail.com
             """
 
-            send_mail(admin_subject, admin_message, settings.DEFAULT_FROM_EMAIL, [settings.EMAIL_HOST_USER])
-            send_mail(client_subject, client_message, settings.DEFAULT_FROM_EMAIL, [self.email])
+            # Send to admin
+            send_mail(
+                admin_subject, 
+                admin_message, 
+                settings.DEFAULT_FROM_EMAIL, 
+                [settings.EMAIL_HOST_USER],
+                fail_silently=False
+            )
+            
+            # Send to client
+            send_mail(
+                client_subject, 
+                client_message, 
+                settings.DEFAULT_FROM_EMAIL, 
+                [self.email],
+                fail_silently=False
+            )
+            
+            logger.info(f"Booking confirmation emails sent for {self.full_name}")
+            
         except Exception as e:
-            print(f"❌ Email error: {e}")
+            logger.error(f"❌ Email error for booking {self.id}: {e}")
 
 class ContactSubmission(models.Model):
     name = models.CharField(max_length=200)

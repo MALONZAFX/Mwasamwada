@@ -9,7 +9,7 @@ admin.site.index_title = "Welcome to the MWASAMWADA Admin Dashboard"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('content.urls')),
+    path('', include('content.urls')),  # include app URLs
 ]
 
 # Serve media files in development
