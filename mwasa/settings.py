@@ -132,7 +132,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# FIX: Use CompressedStaticFilesStorage instead of CompressedManifestStaticFilesStorage
+# This prevents the "Missing staticfiles manifest entry" error
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -179,3 +182,11 @@ CACHES = {
         'LOCATION': BASE_DIR / 'django_cache',
     }
 }
+
+# ==================== DEVELOPMENT/PRODUCTION NOTICE ====================
+if DEBUG:
+    print("🎯 Running in DEVELOPMENT mode")
+    print("📝 Static files: Using CompressedStaticFilesStorage (no manifest)")
+else:
+    print("🏢 Running in PRODUCTION mode") 
+    print("📝 Static files: Using CompressedStaticFilesStorage (no manifest)")
