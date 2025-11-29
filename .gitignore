@@ -1,103 +1,14 @@
 # Django
 *.log
-*.pot
+*.sqlite3
 *.pyc
 __pycache__/
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+migrations/
 media/
 staticfiles/
+django_cache/
 
-# Environment variables
-.env
-.env.*
-.venv
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Project specific
-/instance/
-/web-stats/
-
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
-# Complexity
-output/*.html
-output/*/index.html
-
-# Sphinx
-docs/_build/
-
-# PyCharm
-.idea/
-
-# IPython
-profile_default/
-ipython_config.py
-
-# Jupyter
-.ipynb_checkpoints
-
-# pyenv
-.python-version
-
-# celery
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
+# Environment
 .env
 .venv
 env/
@@ -106,29 +17,26 @@ ENV/
 env.bak/
 venv.bak/
 
-# Spyder project settings
-.spyderproject
-.spyproject
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Rope project settings
-.ropeproject
+# OS
+.DS_Store
+Thumbs.db
 
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Backup files
-*.bak
-*.backup
+# Railway
+.railway/
 
 # Temporary files
 *.tmp
 *.temp
 
-# Database migrations (optional - be careful with this)
-# */migrations/*.py
-# !*/migrations/__init__.py
+# Logs
+logs/
+*.log
+
+# Database
+*.db
