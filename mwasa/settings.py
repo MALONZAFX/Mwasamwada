@@ -4,11 +4,30 @@ Django settings for mwasa project - Smart Database Configuration
 
 from pathlib import Path
 import os
+import sys
 from decouple import config
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# ==================== ENVIRONMENT DETECTION ====================
+# Check if we're on Railway (minimal check)
+def is_railway():
+    """Simple check for Railway environment"""
+    return (
+        os.environ.get('RAILWAY_ENVIRONMENT') == 'production' or
+        'RAILWAY' in os.environ or
+        'railway.app' in os.environ.get('ALLOWED_HOSTS', '') or
+        os.environ.get('RAILWAY_STATIC_URL') is not None
+    )
+
+IS_RAILWAY = is_railway()
+IS_LOCAL = not IS_RAILWAY
+
+print("=" * 50)
+print(f"🚀 {'RAILWAY PRODUCTION' if IS_RAILWAY else 'LOCAL DEVELOPMENT'}")
+print("=" * 50)
 
 # ==================== CORE SETTINGS ====================
 SECRET_KEY = config('DJANGO_SECRET_KEY')
@@ -17,7 +36,88 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')])
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=lambda v: [s.strip() for s in v.split(',')])
 
+# ==================== SMART DATABASE CONFIGURATION ====================
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+def test_postgres_connection(db_url):
+    """Test if PostgreSQL connection is actually working"""
+    try:
+        import psycopg2
+        from urllib.parse import urlparse
+        
+        parsed = urlparse(db_url)
+        
+        # Try to connect
+        conn = psycopg2.connect(
+            database=parsed.path[1:],
+            user=parsed.username,
+            password=parsed.password,
+            host=parsed.hostname,
+            port=parsed.port,
+            connect_timeout=3
+        )
+        
+        # Quick test query
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        cursor.close()
+        conn.close()
+        
+        return True
+    except Exception:
+        return False
+
+# MAIN DATABASE LOGIC - Only this section changed!
+if IS_RAILWAY and DATABASE_URL:
+    # On Railway with DATABASE_URL
+    print(f"📡 Railway DATABASE_URL detected: {DATABASE_URL[:50]}...")
+    
+    # Test if PostgreSQL is actually accessible
+    if test_postgres_connection(DATABASE_URL):
+        # PostgreSQL is working - use it!
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=600,
+                conn_health_checks=True,
+            )
+        }
+        print("✅ PostgreSQL: Connected successfully")
+    else:
+        # PostgreSQL failed - use SQLite fallback
+        print("⚠️ PostgreSQL connection failed - using SQLite fallback")
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db_railway_fallback.sqlite3',
+            }
+        }
+elif DATABASE_URL and 'postgres' in DATABASE_URL.lower():
+    # Has PostgreSQL URL but not on Railway (maybe Render or other)
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+    print("🌐 External PostgreSQL detected")
+else:
+    # Local Development or no DATABASE_URL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+    print("💻 Local SQLite database")
+
+# Print database info (keeping your format)
+print(f"🔗 Database: {DATABASES['default']['ENGINE']}")
+print(f"📁 Database Name: {DATABASES['default'].get('NAME', 'N/A')}")
+
 # ==================== SECURITY SETTINGS ====================
+# KEEPING YOUR EXACT SECURITY SETTINGS
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -78,32 +178,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'mwasa.wsgi.application'
-
-# ==================== SMART DATABASE CONFIGURATION ====================
-DATABASE_URL = config('DATABASE_URL', default=None)
-
-if DATABASE_URL and 'postgres.railway.internal' in DATABASE_URL:
-    # Railway PostgreSQL (will only work on Railway)
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
-    print("🚀 PRODUCTION: Using Railway PostgreSQL")
-else:
-    # Local Development (SQLite)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-    print("💻 DEVELOPMENT: Using Local SQLite Database")
-
-print(f"🔗 Database: {DATABASES['default']['ENGINE']}")
-print(f"📁 Database Name: {DATABASES['default'].get('NAME', 'N/A')}")
 
 # ==================== PASSWORD VALIDATION ====================
 AUTH_PASSWORD_VALIDATORS = [
@@ -190,3 +264,5 @@ if DEBUG:
 else:
     print("🏢 Running in PRODUCTION mode") 
     print("📝 Static files: Using CompressedStaticFilesStorage (no manifest)")
+    
+print("=" * 50)
