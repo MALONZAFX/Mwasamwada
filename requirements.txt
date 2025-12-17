@@ -1,5 +1,5 @@
 Django>=4.2
-gunicorn
+gunicorn==21.2.0
 whitenoise[brotli]
 psycopg2-binary
 python-decouple
