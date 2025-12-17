@@ -4,3 +4,4 @@ whitenoise[brotli]
 psycopg2-binary
 python-decouple
 dj-database-url
+Pillow==10.3.0
