@@ -15,14 +15,43 @@ print(f"🚀 Environment: {ENVIRONMENT.upper()}")
 print("=" * 50)
 
 # ==================== CORE SETTINGS ====================
-SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
-DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+# FIXED: Safe environment variable access with fallbacks
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
-# Parse ALLOWED_HOSTS from environment
-ALLOWED_HOSTS = [host.strip() for host in os.environ.get('ALLOWED_HOSTS', '').split(',') if host.strip()]
+if not SECRET_KEY:
+    if ENVIRONMENT == 'railway':
+        print("⚠️  WARNING: DJANGO_SECRET_KEY not set on Railway!")
+        print("   Using generated fallback key (ADD DJANGO_SECRET_KEY TO RAILWAY VARIABLES)")
+        # Generate a deterministic fallback for Railway
+        import hashlib
+        fallback_seed = os.environ.get('DATABASE_URL', 'railway-fallback') + os.environ.get('RAILWAY_GIT_COMMIT_SHA', '')
+        SECRET_KEY = hashlib.sha256(fallback_seed.encode()).hexdigest()
+    else:
+        SECRET_KEY = 'django-insecure-dev-key-for-local-development-only-2024'
+        print("⚠️  Using development secret key for local testing")
 
-# Parse CSRF_TRUSTED_ORIGINS from environment
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
+DEBUG_STR = os.environ.get('DEBUG', '').lower()
+DEBUG = DEBUG_STR == 'true'
+
+# Parse ALLOWED_HOSTS from environment with fallbacks
+ALLOWED_HOSTS_STR = os.environ.get('ALLOWED_HOSTS', '')
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STR.split(',') if host.strip()]
+
+if not ALLOWED_HOSTS:
+    if ENVIRONMENT == 'railway':
+        # Default Railway hosts
+        ALLOWED_HOSTS = ['.railway.app', '.up.railway.app']
+        print("⚠️  No ALLOWED_HOSTS set, using Railway defaults")
+    else:
+        ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0']
+        print("⚠️  No ALLOWED_HOSTS set, using local defaults")
+
+# Parse CSRF_TRUSTED_ORIGINS from environment with fallbacks
+CSRF_TRUSTED_ORIGINS_STR = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_TRUSTED_ORIGINS_STR.split(',') if origin.strip()]
+
+if not CSRF_TRUSTED_ORIGINS and ENVIRONMENT == 'railway':
+    CSRF_TRUSTED_ORIGINS = ['https://*.railway.app', 'https://*.up.railway.app']
 
 # ==================== DATABASE CONFIGURATION ====================
 def parse_postgres_url(db_url):
@@ -152,7 +181,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE ='whitenoise.storage.CompressedStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -185,8 +215,10 @@ LOGGING = {
 
 # ==================== FINAL STARTUP MESSAGE ====================
 print("=" * 50)
-print(f"✅ Settings loaded from Railway")
+print(f"✅ Settings loaded successfully")
+print(f"🌍 Environment: {ENVIRONMENT}")
 print(f"🔧 Debug: {'ON' if DEBUG else 'OFF'}")
+print(f"🔑 Secret Key: {'✓ SET' if SECRET_KEY and SECRET_KEY.startswith('django-insecure') else '✓ GENERATED' if SECRET_KEY else '✗ MISSING'}")
 print(f"📊 Database: {'PostgreSQL' if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql' else 'SQLite'}")
 print(f"📧 Email: {EMAIL_BACKEND}")
 print(f"🌐 Allowed Hosts: {len(ALLOWED_HOSTS)} hosts configured")
