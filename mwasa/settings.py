@@ -1,5 +1,5 @@
 """
-Django settings for mwasa project - Smart Database Configuration
+Django settings for mwasa project
 """
 
 from pathlib import Path
@@ -14,30 +14,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 def detect_environment():
     """Smart environment detection"""
     # Check for Railway explicitly
-    railway_env_vars = [
-        'RAILWAY_ENVIRONMENT',
-        'RAILWAY_STATIC_URL',
-        'RAILWAY_DEPLOYMENT_ID',
-        'RAILWAY_PROJECT_NAME',
-        'RAILWAY_GIT_COMMIT_SHA',
-        'RAILWAY_GIT_BRANCH'
-    ]
-    
-    # Check for any Railway environment variable
-    if any(os.environ.get(var) for var in railway_env_vars):
+    if 'RAILWAY_ENVIRONMENT' in os.environ:
         return 'railway'
     
-    # Check for PORT environment variable (Railway always sets this)
-    if 'PORT' in os.environ and 'GIT_REV' in os.environ:
+    if 'RAILWAY_STATIC_URL' in os.environ:
         return 'railway'
     
-    # Check if running in Railway's internal network
-    if 'RAILWAY' in os.environ.get('HOSTNAME', '').upper():
-        return 'railway'
-    
-    # Check DATABASE_URL for Railway pattern
-    db_url = os.environ.get('DATABASE_URL', '')
-    if 'railway' in db_url or '.rlwy.net' in db_url:
+    # Check for PORT environment variable (Railway provides this)
+    if 'PORT' in os.environ:
         return 'railway'
     
     # Default to local for development
@@ -59,18 +43,17 @@ else:
     DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Host settings
-DEFAULT_ALLOWED_HOSTS = '127.0.0.1,localhost'
-if ENVIRONMENT == 'railway':
-    DEFAULT_ALLOWED_HOSTS += ',*.railway.app'
+ALLOWED_HOSTS = ['*'] if DEBUG else config(
+    'ALLOWED_HOSTS', 
+    default='.railway.app,www.mwasawellbeingservices.com,mwasawellbeingservices.com',
+    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
+)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=DEFAULT_ALLOWED_HOSTS, cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
-
-# CSRF settings
-DEFAULT_CSRF_TRUSTED_ORIGINS = 'http://127.0.0.1:8000,http://localhost:8000'
-if ENVIRONMENT == 'railway':
-    DEFAULT_CSRF_TRUSTED_ORIGINS += ',https://*.railway.app'
-
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default=DEFAULT_CSRF_TRUSTED_ORIGINS, cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS', 
+    default='https://*.railway.app,https://www.mwasawellbeingservices.com,https://mwasawellbeingservices.com',
+    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
+)
 
 # ==================== SMART DATABASE CONFIGURATION ====================
 def setup_sqlite():
@@ -80,15 +63,11 @@ def setup_sqlite():
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': db_path,
-            'OPTIONS': {
-                'timeout': 20,
-            }
         }
     }
 
 def setup_postgresql(db_url):
     """Setup PostgreSQL database with proper configuration"""
-    # Parse the database URL
     db_config = dj_database_url.parse(db_url, conn_max_age=600, conn_health_checks=True)
     
     # Add SSL requirement for production (Railway)
@@ -98,100 +77,33 @@ def setup_postgresql(db_url):
     
     return {'default': db_config}
 
-def test_postgres_connection(db_url, timeout=5):
-    """Test PostgreSQL connection (for local debugging only)"""
-    try:
-        import psycopg2
-        from urllib.parse import urlparse
-        import time
-        
-        print(f"🔍 Testing PostgreSQL connection...")
-        parsed = urlparse(db_url)
-        
-        db_params = {
-            'database': parsed.path[1:],
-            'user': parsed.username,
-            'password': parsed.password,
-            'host': parsed.hostname,
-            'port': parsed.port,
-            'connect_timeout': timeout
-        }
-        
-        print(f"   Host: {db_params.get('host', 'N/A')}:{db_params.get('port', 'N/A')}")
-        print(f"   Database: {db_params.get('database', 'N/A')}")
-        
-        conn = psycopg2.connect(**db_params)
-        cursor = conn.cursor()
-        cursor.execute("SELECT version(), current_database(), current_user")
-        result = cursor.fetchone()
-        
-        cursor.close()
-        conn.close()
-        
-        elapsed = time.time() - start_time
-        print(f"✅ PostgreSQL: Connected in {elapsed:.2f}s")
-        print(f"   PostgreSQL Version: {result[0].split(',')[0]}")
-        print(f"   Current DB: {result[1]}")
-        print(f"   Current User: {result[2]}")
-        
-        return True
-    except Exception as e:
-        print(f"❌ PostgreSQL connection failed: {e}")
-        return False
-
 # MAIN DATABASE LOGIC
 print(f"🌐 Environment: {ENVIRONMENT}")
-print(f"🔧 Debug Mode: {'ON' if DEBUG else 'OFF'}")
 
 if ENVIRONMENT == 'railway':
     # On Railway, always use PostgreSQL from DATABASE_URL environment variable
     RAILWAY_DATABASE_URL = os.environ.get('DATABASE_URL')
     
     if RAILWAY_DATABASE_URL and RAILWAY_DATABASE_URL.startswith('postgresql://'):
-        print("🚂 Railway detected - using PostgreSQL from DATABASE_URL")
+        print("🚂 Railway detected - using PostgreSQL")
         DATABASES = setup_postgresql(RAILWAY_DATABASE_URL)
     else:
-        # Fallback - this shouldn't happen on Railway but just in case
-        print("⚠️ Warning: No DATABASE_URL found on Railway, using SQLite fallback")
+        print("⚠️ Warning: No DATABASE_URL found, using SQLite")
         DATABASES = setup_sqlite()
         
 elif ENVIRONMENT == 'local':
-    # Local development - user choice between SQLite and PostgreSQL
+    # Local development
     DATABASE_URL = config('DATABASE_URL', default='sqlite:///db.sqlite3')
     USE_POSTGRESQL_LOCAL = config('USE_POSTGRESQL_LOCAL', default=False, cast=bool)
     
     if USE_POSTGRESQL_LOCAL and DATABASE_URL.startswith('postgresql://'):
         print("💻 Local development with PostgreSQL")
-        
-        # Test connection first
-        try:
-            import psycopg2
-            # If we can import psycopg2, try to use PostgreSQL
-            DATABASES = setup_postgresql(DATABASE_URL)
-            print("✅ Using PostgreSQL for local development")
-        except ImportError:
-            print("❌ psycopg2 not installed, falling back to SQLite")
-            print("💡 Install with: pip install psycopg2-binary")
-            DATABASES = setup_sqlite()
+        DATABASES = setup_postgresql(DATABASE_URL)
     else:
         print("💾 Local development with SQLite")
         DATABASES = setup_sqlite()
 
-# Print final database info
 print(f"📊 Database Engine: {DATABASES['default']['ENGINE']}")
-if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
-    print(f"📁 SQLite Path: {DATABASES['default']['NAME']}")
-else:
-    db_info = DATABASES['default']
-    host = db_info.get('HOST', 'N/A')
-    port = db_info.get('PORT', 'N/A')
-    # Mask host for security in logs
-    if host != 'N/A' and 'rlwy.net' in host:
-        masked_host = host.split('.')[0] + '.***.rlwy.net'
-        print(f"🌐 PostgreSQL: {masked_host}:{port}")
-    else:
-        print(f"🌐 PostgreSQL: {host}:{port}")
-    print(f"📦 Database: {db_info.get('NAME', 'N/A')}")
 
 # ==================== SECURITY SETTINGS ====================
 if ENVIRONMENT != 'local':
@@ -200,20 +112,16 @@ if ENVIRONMENT != 'local':
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
 else:
     # Local development - relaxed security
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-    SECURE_HSTS_SECONDS = 0
 
 X_FRAME_OPTIONS = 'DENY'
-SECURE_REFERRER_POLICY = 'same-origin'
 
 # ==================== APPLICATION DEFINITION ====================
 INSTALLED_APPS = [
@@ -223,13 +131,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'whitenoise.runserver_nostatic',  # Disable Django static for Whitenoise
     'content',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Must be after SecurityMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -251,9 +158,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.media',
             ],
-            'debug': DEBUG,
         },
     },
 ]
@@ -284,19 +189,26 @@ USE_I18N = True
 USE_TZ = True
 
 # ==================== STATIC & MEDIA FILES ====================
+# IMPORTANT: Fix for Whitenoise manifest issue
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Whitenoise configuration
-STORAGES = {
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
+if ENVIRONMENT == 'railway':
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
+    # Use CompressedManifestStaticFilesStorage only if you run collectstatic
+    # Otherwise use simpler storage for development
+    if DEBUG:
+        STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+    else:
+        STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    # Local development - simple static serving
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
-# Keep this for Django < 4.2 compatibility
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Ensure staticfiles directory exists
+if not STATIC_ROOT.exists():
+    STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -318,31 +230,14 @@ else:
     EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
     EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
     DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@mwasawellbeingservices.com')
-    SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
 
 # ==================== LOGGING CONFIGURATION ====================
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '[{asctime}] {levelname} {module} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'django.log',
-            'formatter': 'verbose',
         },
     },
     'root': {
@@ -352,52 +247,14 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': config('DJANGO_LOG_LEVEL', default='INFO'),
-            'propagate': True,
-        },
-        'django.db.backends': {
             'level': 'INFO',
-            'handlers': ['console'],
-            'propagate': False,
-        },
-        'django.request': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
+            'propagate': True,
         },
     },
 }
 
-# ==================== ADDITIONAL SETTINGS ====================
-APPEND_SLASH = True
-PREPEND_WWW = config('PREPEND_WWW', default=False, cast=bool)
-
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
-SESSION_SAVE_EVERY_REQUEST = False
-
-# Cache configuration
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-    }
-}
-
-# File upload settings
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
-
-# Authentication URLs
-LOGIN_URL = '/admin/login/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
-
-# ==================== FINAL STARTUP MESSAGE ====================
 print("=" * 50)
 print(f"✅ Settings loaded successfully")
-print(f"🌍 Environment: {ENVIRONMENT.upper()}")
 print(f"🔧 Debug: {'ON' if DEBUG else 'OFF'}")
 print(f"📊 Database: {'PostgreSQL' if 'postgresql' in str(DATABASES['default'].get('ENGINE', '')) else 'SQLite'}")
-print(f"🌐 Allowed Hosts: {', '.join(ALLOWED_HOSTS[:3])}{'...' if len(ALLOWED_HOSTS) > 3 else ''}")
 print("=" * 50)
