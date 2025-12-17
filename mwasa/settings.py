@@ -2,8 +2,8 @@
 Django settings for mwasa project
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
 from decouple import config
 import dj_database_url
 
@@ -12,19 +12,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ==================== ENVIRONMENT DETECTION ====================
 def detect_environment():
-    """Smart environment detection"""
-    # Check for Railway explicitly
+    """Detect current environment with Railway priority"""
+    # Running on Railway (production)
     if 'RAILWAY_ENVIRONMENT' in os.environ:
-        return 'railway'
+        return 'railway_production'
     
-    if 'RAILWAY_STATIC_URL' in os.environ:
-        return 'railway'
+    # Running locally via Railway CLI
+    if 'RAILWAY_PROJECT_ID' in os.environ:
+        return 'railway_local'
     
-    # Check for PORT environment variable (Railway provides this)
-    if 'PORT' in os.environ:
-        return 'railway'
-    
-    # Default to local for development
+    # Pure local development
     return 'local'
 
 ENVIRONMENT = detect_environment()
@@ -34,94 +31,132 @@ print(f"🚀 Environment: {ENVIRONMENT.upper()}")
 print("=" * 50)
 
 # ==================== CORE SETTINGS ====================
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', config('DJANGO_SECRET_KEY', default='django-insecure-fallback-key-for-development-only'))
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', config('DJANGO_SECRET_KEY', default='django-insecure-dev-key-change-in-production'))
 
-# Debug settings based on environment
+# Debug settings - only True for pure local dev
 if ENVIRONMENT == 'local':
     DEBUG = config('DEBUG', default=True, cast=bool)
 else:
     DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Host settings
-ALLOWED_HOSTS = ['*'] if DEBUG else config(
-    'ALLOWED_HOSTS', 
-    default='.railway.app,www.mwasawellbeingservices.com,mwasawellbeingservices.com',
-    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
-)
-
-CSRF_TRUSTED_ORIGINS = config(
-    'CSRF_TRUSTED_ORIGINS', 
-    default='https://*.railway.app,https://www.mwasawellbeingservices.com,https://mwasawellbeingservices.com',
-    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
-)
+if ENVIRONMENT == 'local':
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0']
+elif ENVIRONMENT == 'railway_local':
+    ALLOWED_HOSTS = ['*']  # Allow all for Railway CLI testing
+else:  # railway_production
+    ALLOWED_HOSTS = [
+        '.railway.app',
+        'www.mwasawellbeingservices.com',
+        'mwasawellbeingservices.com',
+        '127.0.0.1',
+        'localhost'
+    ]
 
 # ==================== SMART DATABASE CONFIGURATION ====================
-def setup_sqlite():
-    """Setup SQLite database for local development"""
-    db_path = BASE_DIR / 'db.sqlite3'
+def get_database_config():
+    """
+    Smart database configuration that works in all environments.
+    Priority: DATABASE_PUBLIC_URL > DATABASE_URL > SQLite
+    """
+    
+    # 1. FIRST PRIORITY: Public URL (works everywhere)
+    DATABASE_PUBLIC_URL = os.environ.get('DATABASE_PUBLIC_URL')
+    if DATABASE_PUBLIC_URL:
+        print("✅ Using DATABASE_PUBLIC_URL (public connection)")
+        config = dj_database_url.parse(
+            DATABASE_PUBLIC_URL,
+            conn_max_age=600,
+            conn_health_checks=True
+        )
+        
+        # Always require SSL for public connections
+        config['OPTIONS'] = config.get('OPTIONS', {})
+        config['OPTIONS']['sslmode'] = 'require'
+        return config
+    
+    # 2. SECOND PRIORITY: Regular DATABASE_URL
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    if DATABASE_URL:
+        print("📡 Using DATABASE_URL")
+        config = dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True
+        )
+        
+        # Only require SSL for Railway production
+        if ENVIRONMENT == 'railway_production':
+            config['OPTIONS'] = config.get('OPTIONS', {})
+            config['OPTIONS']['sslmode'] = 'require'
+        return config
+    
+    # 3. FALLBACK: SQLite for local development
+    print("💾 No database URL found, using SQLite")
     return {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': db_path,
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 20,
         }
     }
 
-def setup_postgresql(db_url):
-    """Setup PostgreSQL database with proper configuration"""
-    db_config = dj_database_url.parse(db_url, conn_max_age=600, conn_health_checks=True)
-    
-    # Add SSL requirement for production (Railway)
-    if ENVIRONMENT == 'railway':
-        db_config['OPTIONS'] = db_config.get('OPTIONS', {})
-        db_config['OPTIONS']['sslmode'] = 'require'
-    
-    return {'default': db_config}
+# Apply database configuration
+DATABASES = {
+    'default': get_database_config()
+}
 
-# MAIN DATABASE LOGIC
-print(f"🌐 Environment: {ENVIRONMENT}")
-
-if ENVIRONMENT == 'railway':
-    # On Railway, always use PostgreSQL from DATABASE_URL environment variable
-    RAILWAY_DATABASE_URL = os.environ.get('DATABASE_URL')
+# Print database connection info (masked for security)
+db_engine = DATABASES['default'].get('ENGINE', '')
+if 'postgresql' in db_engine:
+    host = DATABASES['default'].get('HOST', 'N/A')
+    port = DATABASES['default'].get('PORT', 'N/A')
+    name = DATABASES['default'].get('NAME', 'N/A')
     
-    if RAILWAY_DATABASE_URL and RAILWAY_DATABASE_URL.startswith('postgresql://'):
-        print("🚂 Railway detected - using PostgreSQL")
-        DATABASES = setup_postgresql(RAILWAY_DATABASE_URL)
+    # Mask hostname for security in logs
+    if host and 'rlwy.net' in host:
+        masked_host = '***.rlwy.net'
+        print(f"🔗 PostgreSQL: {masked_host}:{port}")
+    elif host and 'railway.internal' in host:
+        masked_host = 'railway.internal'
+        print(f"🔗 PostgreSQL (internal): {masked_host}:{port}")
     else:
-        print("⚠️ Warning: No DATABASE_URL found, using SQLite")
-        DATABASES = setup_sqlite()
-        
-elif ENVIRONMENT == 'local':
-    # Local development
-    DATABASE_URL = config('DATABASE_URL', default='sqlite:///db.sqlite3')
-    USE_POSTGRESQL_LOCAL = config('USE_POSTGRESQL_LOCAL', default=False, cast=bool)
+        print(f"🔗 PostgreSQL: {host}:{port}")
     
-    if USE_POSTGRESQL_LOCAL and DATABASE_URL.startswith('postgresql://'):
-        print("💻 Local development with PostgreSQL")
-        DATABASES = setup_postgresql(DATABASE_URL)
-    else:
-        print("💾 Local development with SQLite")
-        DATABASES = setup_sqlite()
-
-print(f"📊 Database Engine: {DATABASES['default']['ENGINE']}")
+    print(f"📦 Database: {name}")
+else:
+    print(f"📁 SQLite: {DATABASES['default'].get('NAME', 'N/A')}")
 
 # ==================== SECURITY SETTINGS ====================
-if ENVIRONMENT != 'local':
-    # Production security settings
+if ENVIRONMENT == 'railway_production':
+    # Production security
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    
+    CSRF_TRUSTED_ORIGINS = [
+        'https://*.railway.app',
+        'https://mwasawellbeingservices.com',
+        'https://www.mwasawellbeingservices.com'
+    ]
 else:
-    # Local development - relaxed security
+    # Development security (relaxed)
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-
-X_FRAME_OPTIONS = 'DENY'
+    X_FRAME_OPTIONS = 'SAMEORIGIN'
+    
+    if ENVIRONMENT == 'railway_local':
+        CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+    else:  # local
+        CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000', 'http://0.0.0.0:8000']
 
 # ==================== APPLICATION DEFINITION ====================
 INSTALLED_APPS = [
@@ -189,33 +224,23 @@ USE_I18N = True
 USE_TZ = True
 
 # ==================== STATIC & MEDIA FILES ====================
-# IMPORTANT: Fix for Whitenoise manifest issue
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-if ENVIRONMENT == 'railway':
-    STATIC_ROOT = BASE_DIR / 'staticfiles'
-    # Use CompressedManifestStaticFilesStorage only if you run collectstatic
-    # Otherwise use simpler storage for development
-    if DEBUG:
-        STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-    else:
-        STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Static files storage - simple for development, manifest for production
+if ENVIRONMENT == 'railway_production':
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 else:
-    # Local development - simple static serving
-    STATIC_ROOT = BASE_DIR / 'staticfiles'
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-
-# Ensure staticfiles directory exists
-if not STATIC_ROOT.exists():
-    STATIC_ROOT.mkdir(parents=True, exist_ok=True)
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Ensure media directory exists
-if not MEDIA_ROOT.exists():
-    MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+# Ensure directories exist
+for directory in [STATIC_ROOT, MEDIA_ROOT]:
+    if not directory.exists():
+        directory.mkdir(parents=True, exist_ok=True)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -235,9 +260,16 @@ else:
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {module} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
         },
     },
     'root': {
@@ -248,13 +280,21 @@ LOGGING = {
         'django': {
             'handlers': ['console'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',  # Reduce SQL log noise
+            'propagate': False,
         },
     },
 }
 
+# ==================== FINAL STARTUP MESSAGE ====================
 print("=" * 50)
 print(f"✅ Settings loaded successfully")
+print(f"🌍 Environment: {ENVIRONMENT}")
 print(f"🔧 Debug: {'ON' if DEBUG else 'OFF'}")
 print(f"📊 Database: {'PostgreSQL' if 'postgresql' in str(DATABASES['default'].get('ENGINE', '')) else 'SQLite'}")
+print(f"🌐 Allowed Hosts: {', '.join(ALLOWED_HOSTS[:3])}{'...' if len(ALLOWED_HOSTS) > 3 else ''}")
 print("=" * 50)
