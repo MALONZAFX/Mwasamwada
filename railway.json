@@ -4,7 +4,7 @@
       "builder": "NIXPACKS"
     },
     "deploy": {
-      "startCommand": "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn mwasa.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --access-logfile - --error-logfile -",
+      "startCommand": "sh -c 'python manage.py migrate && python manage.py collectstatic --noinput && echo \"Starting Gunicorn...\" && gunicorn mwasa.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --access-logfile - --error-logfile - --log-level debug'",
       "restartPolicyType": "ON_FAILURE"
     }
   }
