@@ -308,3 +308,29 @@ class Blog(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+
+class GuideSection(models.Model):
+    """Model for Our Guide section (Vision, Mission, Core Values)"""
+    SECTION_CHOICES = [
+        ('vision', 'Vision'),
+        ('mission', 'Mission'),
+        ('core_values', 'Core Values'),
+    ]
+    
+    section_type = models.CharField(max_length=20, choices=SECTION_CHOICES, unique=True)
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    image_url = models.URLField(blank=True, null=True, help_text="Optional: URL for section image")
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0, help_text="Order of display")
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['order', 'section_type']
+        verbose_name = 'Guide Section'
+        verbose_name_plural = 'Guide Sections'
+    
+    def __str__(self):
+        return f"{self.get_section_type_display()} - {self.title}"        

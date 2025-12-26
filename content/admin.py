@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Service, Feature, ServiceBooking, ContactSubmission, NewsletterSubscriber, Blog
+from .models import Service, Feature, ServiceBooking, ContactSubmission, NewsletterSubscriber, Blog, GuideSection
 
 class FeatureInline(admin.TabularInline):
     model = Feature
@@ -31,8 +31,8 @@ class FeatureAdmin(admin.ModelAdmin):
 
 @admin.register(ServiceBooking)
 class ServiceBookingAdmin(admin.ModelAdmin):
-    list_display = ['full_name', 'phone', 'service_type', 'session_mode', 'preferred_date', 'preferred_time', 'status', 'submitted_at']  # ADDED session_mode
-    list_filter = ['service_type', 'session_mode', 'status', 'submitted_at', 'preferred_date']  # ADDED session_mode
+    list_display = ['full_name', 'phone', 'service_type', 'session_mode', 'preferred_date', 'preferred_time', 'status', 'submitted_at']
+    list_filter = ['service_type', 'session_mode', 'status', 'submitted_at', 'preferred_date']
     search_fields = ['full_name', 'phone', 'description']
     readonly_fields = ['submitted_at']
     list_editable = ['status']
@@ -42,7 +42,7 @@ class ServiceBookingAdmin(admin.ModelAdmin):
             'fields': ('full_name', 'email', 'phone')
         }),
         ('Booking Details', {
-            'fields': ('service_type', 'session_mode', 'preferred_date', 'preferred_time', 'description')  # ADDED session_mode
+            'fields': ('service_type', 'session_mode', 'preferred_date', 'preferred_time', 'description')
         }),
         ('Status', {
             'fields': ('status', 'submitted_at')
@@ -81,3 +81,38 @@ class BlogAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+@admin.register(GuideSection)
+class GuideSectionAdmin(admin.ModelAdmin):
+    list_display = ['section_type_display', 'title', 'order', 'is_active', 'updated_at']
+    list_filter = ['section_type', 'is_active']
+    list_editable = ['order', 'is_active']
+    search_fields = ['title', 'content']
+    readonly_fields = ['updated_at']
+    
+    fieldsets = (
+        ('Section Information', {
+            'fields': ('section_type', 'title', 'content', 'order', 'is_active')
+        }),
+        ('Media', {
+            'fields': ('image_url',),
+            'classes': ('collapse',),
+            'description': 'Optional: Add an image URL for this section'
+        }),
+    )
+    
+    def section_type_display(self, obj):
+        return obj.get_section_type_display()
+    section_type_display.short_description = 'Section Type'
+    
+    def has_delete_permission(self, request, obj=None):
+        # Prevent deletion of required sections
+        if obj and obj.section_type in ['vision', 'mission', 'core_values']:
+            return False
+        return super().has_delete_permission(request, obj)
+    
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions

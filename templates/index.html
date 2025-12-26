@@ -195,7 +195,6 @@
 
 </section>
 <!-- /Hero Section -->
-
 <!-- Features Section -->
 <section id="features" class="features section">
 
@@ -210,77 +209,56 @@
     <div class="d-flex justify-content-center">
 
       <ul class="nav nav-tabs" data-aos="fade-up" data-aos-delay="100">
-
+        {% for section in guide_sections %}
         <li class="nav-item">
-          <a class="nav-link active show" data-bs-toggle="tab" data-bs-target="#features-tab-1">
-            <h4>Our Vision</h4>
+          <a class="nav-link {% if forloop.first %}active show{% endif %}" 
+             data-bs-toggle="tab" 
+             data-bs-target="#features-tab-{{ forloop.counter }}">
+            <h4>{{ section.title }}</h4>
           </a>
-        </li><!-- End tab nav item -->
-
-        <li class="nav-item">
-          <a class="nav-link" data-bs-toggle="tab" data-bs-target="#features-tab-2">
-            <h4>Our Mission</h4>
-          </a><!-- End tab nav item -->
-
         </li>
-        <li class="nav-item">
-          <a class="nav-link" data-bs-toggle="tab" data-bs-target="#features-tab-3">
-            <h4>Core Values</h4>
-          </a>
-        </li><!-- End tab nav item -->
-
+        {% endfor %}
       </ul>
 
     </div>
 
     <div class="tab-content" data-aos="fade-up" data-aos-delay="200">
 
-      <div class="tab-pane fade active show" id="features-tab-1">
+      {% for section in guide_sections %}
+      <div class="tab-pane fade {% if forloop.first %}active show{% endif %}" id="features-tab-{{ forloop.counter }}">
         <div class="row">
           <div class="col-lg-6 order-2 order-lg-1 mt-3 mt-lg-0 d-flex flex-column justify-content-center">
-            <h3>Our Vision</h3>
-            <p class="fst-italic">
-              Being a strategic global leader in enhancing normative development and mental health through effective professional, evidence-based and innovative psychological interventions.
-            </p>
-           
+            <h3>{{ section.title }}</h3>
+            
+            {% if section.section_type == 'core_values' %}
+              <ul class="core-values-list">
+                {{ section.content|safe|linebreaks }}
+              </ul>
+            {% else %}
+              <p>{{ section.content|linebreaks }}</p>
+            {% endif %}
+            
           </div>
           <div class="col-lg-6 order-1 order-lg-2 text-center">
-            <img src="https://thumbs.dreamstime.com/b/our-vision-drawn-white-brick-wall-d-inscription-modern-illustation-blue-arrow-hand-icons-around-brickwall-89018617.jpg" alt="Global Leadership in Mental Health" class="img-fluid">
+            {% if section.image_url %}
+              <img src="{{ section.image_url }}" alt="{{ section.title }}" class="img-fluid">
+            {% else %}
+              <!-- Default images based on section type -->
+              {% if section.section_type == 'vision' %}
+                <img src="https://thumbs.dreamstime.com/b/our-vision-drawn-white-brick-wall-d-inscription-modern-illustation-blue-arrow-hand-icons-around-brickwall-89018617.jpg" 
+                     alt="{{ section.title }}" class="img-fluid">
+              {% elif section.section_type == 'mission' %}
+                <img src="https://www.energyquestmagazine.com/wp-content/uploads/2017/02/mission.jpg" 
+                     alt="{{ section.title }}" class="img-fluid">
+              {% elif section.section_type == 'core_values' %}
+                <img src="https://www.v3co.com/wp-content/uploads/2023/10/Our-Core-Values-blog-header.png" 
+                     alt="{{ section.title }}" class="img-fluid">
+              {% endif %}
+            {% endif %}
           </div>
         </div>
       </div><!-- End tab content item -->
-
-      <div class="tab-pane fade" id="features-tab-2">
-        <div class="row">
-          <div class="col-lg-6 order-2 order-lg-1 mt-3 mt-lg-0 d-flex flex-column justify-content-center">
-            <h3>Our Mission</h3>
-            <p class="fst-italic">
-              Developing and using effective professional, evidence-based and innovative psychological interventions through consultancy and advisory, counselling/psychotherapy and training to enhance normative development and mental health at individual and group levels across the lifespan.
-            </p>
-           
-          </div>
-          <div class="col-lg-6 order-1 order-lg-2 text-center">
-            <img src="https://www.energyquestmagazine.com/wp-content/uploads/2017/02/mission.jpg" alt="Psychological Interventions Across Lifespan" class="img-fluid">
-          </div>
-        </div>
-      </div><!-- End tab content item -->
-
-      <div class="tab-pane fade" id="features-tab-3">
-        <div class="row">
-          <div class="col-lg-6 order-2 order-lg-1 mt-3 mt-lg-0 d-flex flex-column justify-content-center">
-            <h3>Our Core Values</h3>
-            <ul>
-              <li><i class="bi bi-check2-all"></i> <span><strong>Empowerment</strong> – Enabling people to exploit their potential as expected.</span></li>
-              <li><i class="bi bi-check2-all"></i> <span><strong>Professionalism</strong> – Upholding competence, responsibility and accountability in service delivery.</span></li>
-              <li><i class="bi bi-check2-all"></i> <span><strong>Innovation</strong> – Embracing creativity in service delivery.</span></li>
-              <li><i class="bi bi-check2-all"></i> <span><strong>Client-centred</strong> – Doing all for the best for the clients' interests.</span></li>
-            </ul>
-          </div>
-          <div class="col-lg-6 order-1 order-lg-2 text-center">
-            <img src="https://www.v3co.com/wp-content/uploads/2023/10/Our-Core-Values-blog-header.png" alt="Core Values in Practice" class="img-fluid">
-          </div>
-        </div>
-      </div><!-- End tab content item -->
+      {% endfor %}
 
     </div>
 

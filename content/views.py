@@ -6,7 +6,7 @@ from django.contrib import messages
 import json
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import ServiceBooking, ContactSubmission, NewsletterSubscriber, Blog, Service
+from .models import ServiceBooking, ContactSubmission, NewsletterSubscriber, Blog, Service, GuideSection
 from datetime import datetime
 import logging
 import traceback
@@ -14,28 +14,177 @@ import traceback
 logger = logging.getLogger(__name__)
 
 # ======================
+# HELPER FUNCTIONS
+# ======================
+def get_guide_sections():
+    """Get guide sections from database with fallback to defaults"""
+    try:
+        sections = GuideSection.objects.filter(is_active=True).order_by('order')
+        
+        # If no sections exist, create default ones
+        if not sections.exists():
+            sections = create_default_guide_sections()
+        
+        # Ensure we have all three required sections
+        required_sections = ['vision', 'mission', 'core_values']
+        existing_types = [section.section_type for section in sections]
+        
+        for section_type in required_sections:
+            if section_type not in existing_types:
+                create_default_section(section_type)
+                # Re-fetch sections
+                sections = GuideSection.objects.filter(is_active=True).order_by('order')
+        
+        return sections
+        
+    except Exception as e:
+        logger.error(f"Error getting guide sections: {str(e)}")
+        return get_default_guide_sections_fallback()
+
+def create_default_guide_sections():
+    """Create default guide sections in database"""
+    default_sections = [
+        {
+            'section_type': 'vision',
+            'title': 'Our Vision',
+            'content': 'Being a strategic global leader in enhancing normative development and mental health through effective professional, evidence-based and innovative psychological interventions.',
+            'image_url': 'https://thumbs.dreamstime.com/b/our-vision-drawn-white-brick-wall-d-inscription-modern-illustation-blue-arrow-hand-icons-around-brickwall-89018617.jpg',
+            'order': 1,
+            'is_active': True
+        },
+        {
+            'section_type': 'mission',
+            'title': 'Our Mission',
+            'content': 'Developing and using effective professional, evidence-based and innovative psychological interventions through consultancy and advisory, counselling/psychotherapy and training to enhance normative development and mental health at individual and group levels across the lifespan.',
+            'image_url': 'https://www.energyquestmagazine.com/wp-content/uploads/2017/02/mission.jpg',
+            'order': 2,
+            'is_active': True
+        },
+        {
+            'section_type': 'core_values',
+            'title': 'Our Core Values',
+            'content': """• Empowerment – Enabling people to exploit their potential as expected.
+• Professionalism – Upholding competence, responsibility and accountability in service delivery.
+• Innovation – Embracing creativity in service delivery.
+• Client-centred – Doing all for the best for the clients' interests.""",
+            'image_url': 'https://www.v3co.com/wp-content/uploads/2023/10/Our-Core-Values-blog-header.png',
+            'order': 3,
+            'is_active': True
+        }
+    ]
+    
+    created_sections = []
+    for section_data in default_sections:
+        section, created = GuideSection.objects.get_or_create(
+            section_type=section_data['section_type'],
+            defaults=section_data
+        )
+        created_sections.append(section)
+    
+    return GuideSection.objects.filter(is_active=True).order_by('order')
+
+def create_default_section(section_type):
+    """Create a single default section"""
+    section_data = {
+        'vision': {
+            'title': 'Our Vision',
+            'content': 'Being a strategic global leader in enhancing normative development and mental health through effective professional, evidence-based and innovative psychological interventions.',
+            'image_url': 'https://thumbs.dreamstime.com/b/our-vision-drawn-white-brick-wall-d-inscription-modern-illustation-blue-arrow-hand-icons-around-brickwall-89018617.jpg',
+            'order': 1,
+            'is_active': True
+        },
+        'mission': {
+            'title': 'Our Mission',
+            'content': 'Developing and using effective professional, evidence-based and innovative psychological interventions through consultancy and advisory, counselling/psychotherapy and training to enhance normative development and mental health at individual and group levels across the lifespan.',
+            'image_url': 'https://www.energyquestmagazine.com/wp-content/uploads/2017/02/mission.jpg',
+            'order': 2,
+            'is_active': True
+        },
+        'core_values': {
+            'title': 'Our Core Values',
+            'content': """• Empowerment – Enabling people to exploit their potential as expected.
+• Professionalism – Upholding competence, responsibility and accountability in service delivery.
+• Innovation – Embracing creativity in service delivery.
+• Client-centred – Doing all for the best for the clients' interests.""",
+            'image_url': 'https://www.v3co.com/wp-content/uploads/2023/10/Our-Core-Values-blog-header.png',
+            'order': 3,
+            'is_active': True
+        }
+    }
+    
+    if section_type in section_data:
+        GuideSection.objects.get_or_create(
+            section_type=section_type,
+            defaults=section_data[section_type]
+        )
+
+def get_default_guide_sections_fallback():
+    """Return default guide sections as dicts for template fallback"""
+    return [
+        {
+            'section_type': 'vision',
+            'title': 'Our Vision',
+            'content': 'Being a strategic global leader in enhancing normative development and mental health through effective professional, evidence-based and innovative psychological interventions.',
+            'image_url': 'https://thumbs.dreamstime.com/b/our-vision-drawn-white-brick-wall-d-inscription-modern-illustation-blue-arrow-hand-icons-around-brickwall-89018617.jpg',
+            'order': 1
+        },
+        {
+            'section_type': 'mission',
+            'title': 'Our Mission',
+            'content': 'Developing and using effective professional, evidence-based and innovative psychological interventions through consultancy and advisory, counselling/psychotherapy and training to enhance normative development and mental health at individual and group levels across the lifespan.',
+            'image_url': 'https://www.energyquestmagazine.com/wp-content/uploads/2017/02/mission.jpg',
+            'order': 2
+        },
+        {
+            'section_type': 'core_values',
+            'title': 'Our Core Values',
+            'content': """• Empowerment – Enabling people to exploit their potential as expected.
+• Professionalism – Upholding competence, responsibility and accountability in service delivery.
+• Innovation – Embracing creativity in service delivery.
+• Client-centred – Doing all for the best for the clients' interests.""",
+            'image_url': 'https://www.v3co.com/wp-content/uploads/2023/10/Our-Core-Values-blog-header.png',
+            'order': 3
+        }
+    ]
+
+# ======================
 # PAGE VIEWS
 # ======================
 def index(request):
     """Home page view"""
     try:
+        # Get all required data
         services = Service.objects.filter(is_active=True)
         blogs = Blog.objects.filter(is_published=True).order_by('-created_at')[:6]
+        guide_sections = get_guide_sections()
         
         context = {
             'services': services,
             'blogs': blogs,
+            'guide_sections': guide_sections,
         }
         return render(request, 'index.html', context)
+        
     except Exception as e:
-        logger.error(f"Error loading index page: {str(e)}")
-        return render(request, 'index.html', {'services': [], 'blogs': []})
+        logger.error(f"Error loading index page: {str(e)}\n{traceback.format_exc()}")
+        
+        # Fallback context in case of error
+        context = {
+            'services': Service.objects.filter(is_active=True) if Service.objects.exists() else [],
+            'blogs': Blog.objects.filter(is_published=True).order_by('-created_at')[:6] if Blog.objects.exists() else [],
+            'guide_sections': get_default_guide_sections_fallback(),
+        }
+        return render(request, 'index.html', context)
 
 def blog_list(request):
     """Blog listing page"""
     try:
         blogs = Blog.objects.filter(is_published=True).order_by('-created_at')
-        return render(request, 'blog_list.html', {'blogs': blogs})
+        context = {
+            'blogs': blogs,
+        }
+        return render(request, 'blog_list.html', context)
+        
     except Exception as e:
         logger.error(f"Error loading blog list: {str(e)}")
         return render(request, 'blog_list.html', {'blogs': []})
@@ -44,7 +193,11 @@ def blog_detail(request, slug):
     """Blog detail page"""
     try:
         blog = get_object_or_404(Blog, slug=slug, is_published=True)
-        return render(request, 'blog_detail.html', {'blog': blog})
+        context = {
+            'blog': blog,
+        }
+        return render(request, 'blog_detail.html', context)
+        
     except Exception as e:
         logger.error(f"Error loading blog detail {slug}: {str(e)}")
         messages.error(request, "Blog post not found.")
@@ -54,10 +207,43 @@ def services_list(request):
     """Services listing page"""
     try:
         services = Service.objects.filter(is_active=True)
-        return render(request, 'services_list.html', {'services': services})
+        context = {
+            'services': services,
+        }
+        return render(request, 'services_list.html', context)
+        
     except Exception as e:
         logger.error(f"Error loading services list: {str(e)}")
         return render(request, 'services_list.html', {'services': []})
+
+def guide_sections_api(request):
+    """API endpoint to get guide sections (for AJAX if needed)"""
+    try:
+        sections = get_guide_sections()
+        data = []
+        
+        for section in sections:
+            data.append({
+                'section_type': section.section_type,
+                'title': section.title,
+                'content': section.content,
+                'image_url': section.image_url,
+                'order': section.order,
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'sections': data,
+            'count': len(data)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in guide sections API: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Failed to load guide sections',
+            'sections': get_default_guide_sections_fallback()
+        })
 
 # ======================
 # SERVICE BOOKING
@@ -293,11 +479,28 @@ def subscribe_newsletter(request):
 @require_GET
 def health_check(request):
     """Simple health check endpoint"""
-    return JsonResponse({
-        'status': 'healthy', 
-        'service': 'Mwasawell Services API',
-        'timestamp': datetime.now().isoformat()
-    })
+    try:
+        # Check if database has guide sections
+        guide_sections_count = GuideSection.objects.count()
+        services_count = Service.objects.count()
+        blogs_count = Blog.objects.count()
+        
+        return JsonResponse({
+            'status': 'healthy', 
+            'service': 'Mwasawell Services API',
+            'database': {
+                'guide_sections': guide_sections_count,
+                'services': services_count,
+                'blogs': blogs_count
+            },
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'degraded',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }, status=500)
 
 @csrf_exempt
 @require_GET
@@ -333,3 +536,21 @@ def test_email(request):
             'success': False, 
             'message': f'Test email failed: {str(e)}'
         }, status=500)
+
+# ======================
+# GUIDE SECTION MANAGEMENT VIEWS (Optional for admin interface)
+# ======================
+def manage_guide_sections(request):
+    """Admin view to manage guide sections (requires admin permissions)"""
+    if not request.user.is_staff:
+        return render(request, '403.html', status=403)
+    
+    try:
+        sections = GuideSection.objects.all().order_by('order')
+        context = {
+            'sections': sections,
+        }
+        return render(request, 'admin/guide_sections.html', context)
+    except Exception as e:
+        logger.error(f"Error in manage_guide_sections: {str(e)}")
+        return render(request, 'admin/guide_sections.html', {'sections': []})
