@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import Service, Feature, ServiceBooking, ContactSubmission, NewsletterSubscriber, Blog, GuideSection
 
 class FeatureInline(admin.TabularInline):
@@ -84,11 +85,11 @@ class BlogAdmin(admin.ModelAdmin):
 
 @admin.register(GuideSection)
 class GuideSectionAdmin(admin.ModelAdmin):
-    list_display = ['section_type_display', 'title', 'order', 'is_active', 'updated_at']
+    list_display = ['section_type_display', 'title', 'order', 'is_active', 'updated_at', 'preview_link']
     list_filter = ['section_type', 'is_active']
     list_editable = ['order', 'is_active']
     search_fields = ['title', 'content']
-    readonly_fields = ['updated_at']
+    readonly_fields = ['updated_at', 'preview_content']
     
     fieldsets = (
         ('Section Information', {
@@ -99,20 +100,69 @@ class GuideSectionAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
             'description': 'Optional: Add an image URL for this section'
         }),
+        ('Preview', {
+            'fields': ('preview_content',),
+            'classes': ('collapse',),
+            'description': 'Preview of how this section will look'
+        }),
     )
     
     def section_type_display(self, obj):
         return obj.get_section_type_display()
     section_type_display.short_description = 'Section Type'
     
-    def has_delete_permission(self, request, obj=None):
-        # Prevent deletion of required sections
-        if obj and obj.section_type in ['vision', 'mission', 'core_values']:
-            return False
-        return super().has_delete_permission(request, obj)
+    def preview_link(self, obj):
+        return format_html('<a href="/" target="_blank">View on Site</a>')
+    preview_link.short_description = 'Preview'
     
+    def preview_content(self, obj):
+        """Show a preview of the content"""
+        if obj.section_type == 'core_values':
+            # Format core values for preview
+            content = obj.content.replace('•', '<br>•')
+            return format_html(f'<div style="padding: 10px; background: #f8f9fa; border-radius: 5px;">{content}</div>')
+        else:
+            # Truncate for preview
+            preview = obj.content[:200] + '...' if len(obj.content) > 200 else obj.content
+            return format_html(f'<div style="padding: 10px; background: #f8f9fa; border-radius: 5px;">{preview}</div>')
+    preview_content.short_description = 'Content Preview'
+    
+    # REMOVED deletion restrictions - you can now delete sections if needed
+    
+    # Optional: Add a warning before deleting
+    def delete_view(self, request, object_id, extra_context=None):
+        """Add warning before deleting guide sections"""
+        extra_context = extra_context or {}
+        extra_context['warning_message'] = (
+            "⚠️ Warning: Deleting this guide section will remove it from the website. "
+            "If this is a required section (Vision, Mission, Core Values), "
+            "the website will use default content as fallback."
+        )
+        return super().delete_view(request, object_id, extra_context)
+    
+    # Optional: Add confirmation for bulk deletions
     def get_actions(self, request):
         actions = super().get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
+        # Keep all actions including delete
         return actions
+    
+    # Optional: Log deletions for tracking
+    def save_model(self, request, obj, form, change):
+        if not change:  # New object
+            super().save_model(request, obj, form, change)
+        else:
+            # Log updates
+            from django.contrib.admin.models import LogEntry, CHANGE
+            from django.contrib.contenttypes.models import ContentType
+            
+            super().save_model(request, obj, form, change)
+            
+            # Log the change
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(obj).pk,
+                object_id=obj.pk,
+                object_repr=str(obj),
+                action_flag=CHANGE,
+                change_message="Updated guide section"
+            )
