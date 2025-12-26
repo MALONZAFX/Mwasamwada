@@ -11,3 +11,5 @@ urlpatterns = [
     path('api/subscribe-newsletter/', views.subscribe_newsletter, name='subscribe_newsletter'),
     path('api/footer-contact/', views.footer_contact, name='footer_contact'),  # ✅ new route
 ]
+
+
