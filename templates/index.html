@@ -94,7 +94,7 @@
   
   <main class="main">
 
-   <!-- Hero Section -->
+  <!-- Hero Section -->
 <section id="hero" class="hero section">
 
   <div class="container" data-aos="fade-up" data-aos-delay="100">
@@ -113,8 +113,9 @@
           </h1>
 
           <p class="mb-4 mb-md-5">
-            Mwasamwanda Well-being Services facilitates normative development and mental health 
-            through professional, evidence-based psychological interventions for individuals and groups.
+            <span class="visible-text">Mwasamwanda Well-being Services is a registered firm in Kenya that, aims at facilitating normative development and mental health at individual and group levels across the lifespan through effective professional, evidence-based and innovative psychological interventions.</span>
+            <span class="hidden-text"> Its services which entail consultancy and advisory, counselling and psychotherapy, and training are based on current global professional standards and trends to enable people function as expected across the lifespan hence lead a fulfilling and happy life. The firm has competent and experienced psychologists ready to offer professional and reliable services. Our services are affordable and accessible hence offered through in person, telephone and online modes.</span>
+            <span class="read-more" tabindex="0" role="button"> Read more</span>
           </p>
 
           <div class="hero-buttons">
@@ -195,6 +196,54 @@
 
 </section>
 <!-- /Hero Section -->
+
+<style>
+.hidden-text {
+  display: none;
+}
+
+.read-more {
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 500;
+  display: inline-block;
+  transition: color 0.2s;
+}
+
+.read-more:hover {
+  color: #0056b3;
+}
+
+.hidden-text.expanded {
+  display: inline;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const readMoreElement = document.querySelector('.read-more');
+  const hiddenTextElement = document.querySelector('.hidden-text');
+  
+  if (readMoreElement && hiddenTextElement) {
+    readMoreElement.addEventListener('click', function() {
+      hiddenTextElement.classList.toggle('expanded');
+      if (hiddenTextElement.classList.contains('expanded')) {
+        readMoreElement.textContent = ' Read less';
+      } else {
+        readMoreElement.textContent = ' Read more';
+      }
+    });
+    
+    readMoreElement.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        this.click();
+      }
+    });
+  }
+});
+</script>
 <!-- Features Section -->
 <section id="features" class="features section">
 
